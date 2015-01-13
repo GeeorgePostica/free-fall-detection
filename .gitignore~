@@ -4,8 +4,6 @@ miosix/_doc/doxygen/html/*
 # Exclude all miosix related
 miosix/*
 AOS/*
-miosix_default_netbeans_project/*
-miosix_mems/*
 
 # Exclude temporary files
 main.elf
