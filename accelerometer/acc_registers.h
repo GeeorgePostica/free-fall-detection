@@ -210,12 +210,9 @@ typedef struct{
                               * | 0 | 0 |   XDA     | X axis new data available.  
                               */
     
-    unsigned short OUT_X_L; /* READ-ONLY; LSB X-axis output register. */
-    unsigned short OUT_X_H; /* READ-ONLY; MSB X-axis output register. */
-    unsigned short OUT_Y_L; /* READ-ONLY; LSB Y-axis output register. */
-    unsigned short OUT_Y_H; /* READ-ONLY; MSB Y-axis output register. */
-    unsigned short OUT_Z_L; /* READ-ONLY; LSB Z-axis output register. */
-    unsigned short OUT_Z_H; /* READ-ONLY; MSB Z-axis output register. */
+    short OUT_X;    /* READ-ONLY; X-axis output register. */
+    short OUT_Y;    /* READ-ONLY; Y-axis output register. */
+    short OUT_Z;    /* READ-ONLY; Z-axis output register. */
     
     char FIFO_CTRL;          /* |bit|def | name | info
                               * -----------------------------------------

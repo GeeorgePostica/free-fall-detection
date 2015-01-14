@@ -18,6 +18,11 @@ void vSpiInit();
 void vSpiWriteByte(char addr, char data);
 void vSpiWriteShort(char addr, unsigned short data);
 void vSpiWriteInt(char addr, unsigned int data);
+void vSpiReadByte(char addr, char& data);
+void vSpiReadBytes(char addr, char data[], int len);
+void vSpiReadBytesSPIorder(char addr, char data[], int len);
+void vSpiReadShort(char addr, short& data);
+void vSpiReadArrayShort(char addr, short data[], int len);
 
 #endif	/* SPI_ACC_H */
 
