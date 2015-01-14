@@ -1,7 +1,9 @@
 /* 
  * File:   acc_registers.h
  * Author: george
- * This file contains all the needed register addresses and other options
+ * This file contains all the needed register addresses and other 
+ * register controls for LIS3DSH accelerometer on 
+ * STM32F407Discovery board
  * Created on January 13, 2015, 1:21 PM
  */
 
@@ -44,6 +46,16 @@
 #define ACC_FIFO_MODE_STREAM_THEN_FIFO      0x60
 #define ACC_FIFO_MODE_BYPASS_THEN_STREAM    0x80
 #define ACC_FIFO_MODE_BYPASS_THEN_FIFO      0xE0
+
+/* Accelerometer Axis for enabling/disabling */
+#define ACC_AXIS_MASK   0x05
+#define ACC_AXIS_X      0x01
+#define ACC_AXIS_Y      0x02
+#define ACC_AXIS_Z      0x04
+
+/* SPI Selection Modes */
+#define ACC_SPI_MODE_3WIRE  0x01
+#define ACC_SPI_MODE_4WIRE  0x00
 
 #define ACC ((ACC_TypeDef *) 0x20)
 
@@ -165,6 +177,72 @@ void vAccSetFIFOMode(const char FIFOMode){
     ACC->FIFO_CTRL = (ACC->FIFO_CTRL & ~ACC_FIFO_MODE_MASK) 
                    | (FIFOMode & ACC_FIFO_MODE_MASK);
 }
+
+void vAccBlockDataUpdate(){
+    ACC->CTRL_REG4 |= 1 << 3;
+}
+
+void vAccEnableAxis(const char Axis){
+    ACC->CTRL_REG4 |= (Axis & ACC_AXIS_MASK);
+}
+
+void vAccDisableAxis(const char Axis){
+    ACC->CTRL_REG4 &= ~(Axis & ACC_AXIS_MASK);
+}
+
+void vAccSoftReset(){
+    ACC->CTRL_REG3 |= 1;
+}
+
+void vAccSetSPIMode(const char SPIMode){
+    ACC->CTRL_REG5 = (ACC->CTRL_REG5 & ~(ACC_SPI_MODE_3WIRE))
+                   | (SPIMode & ACC_SPI_MODE_3WIRE);
+}
+
+void vAccEnableFIFO(){
+    ACC->CTRL_REG6 |= 1 << 6;
+}
+
+void vAccDisableFIFO(){
+    ACC->CTRL_REG6 &= ~(1 << 6);
+}
+
+void vAccForceReboot(){
+    ACC->CTRL_REG6 |= 1 << 7;
+}
+
+void vAccAddrIncON(){
+    ACC->CTRL_REG6 |= 1 << 4;
+}
+
+void vAccAddrIncOFF(){
+    ACC->CTRL_REG6 &= ~(1 << 4);
+}
+
+int iAccIsDataOverrun(){
+    return ACC->STATUS & (1 << 7);
+}
+
+int iAccIsDataOverrun(const char Axis){
+    return ACC->STATUS & ((Axis & ACC_AXIS_MASK) << 4);
+}
+
+int iAccIsDataReady(){
+    return ACC->STATUS & (1 << 3);
+}
+
+int iAccIsDataReady(const char Axis){
+    return ACC->STATUS & (Axis & ACC_AXIS_MASK);
+}
+
+int iAccIsFIFOFilled(){
+    return ACC->FIFO_SRC & (1 << 6);
+}
+
+int iAccIsFIFOEmpty(){
+    return ACC->FIFO_SRC & (1 << 5);
+}
+
 
 #endif	/* ACC_REGISTERS_H */
 

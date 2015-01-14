@@ -3,6 +3,8 @@
 
 using namespace miosix;
 
+typedef Gpio<GPIOA_BASE,5> sck;
+
 int main()
 {
     for(;;)
