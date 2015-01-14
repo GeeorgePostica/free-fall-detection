@@ -15,6 +15,7 @@ main.map
 *.o
 *.a
 *.d
+*~
 
 # Exclude Mac OS X temporary
 ._*
