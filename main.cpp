@@ -1,9 +1,11 @@
 #include <miosix.h>
 #include "accelerometer/acc_registers.h"
+#include <miosix/util/software_spi.h>
 
 using namespace miosix;
 
 typedef Gpio<GPIOA_BASE,5> sck;
+
 
 int main()
 {
