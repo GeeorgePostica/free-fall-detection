@@ -3,94 +3,92 @@
 //#define LOCAL_ACC_FUNCTIONS
 #ifndef LOCAL_ACC_FUNCTIONS        /* Define it to have different set of functions*/
 
-ACC_TypeDef ACC;
-
 /************ Accelerometer registers control functions **********************/
 
-void vAccSetODR(const char ODR){
+void vAccRegSetODR(const char ODR){
     ACC->CTRL_REG4 = (ACC->CTRL_REG4 & ~ACC_ODR_MASK) 
                    | (ODR & ACC_ODR_MASK);
 }
 
-void vAccSetFScale(const char FScale){
+void vAccRegSetFScale(const char FScale){
     ACC->CTRL_REG5 = (ACC->CTRL_REG5 & ~ACC_FSCALE_MASK) 
                    | (FScale & ACC_FSCALE_MASK);
 }
 
-void vAccSelfTest(const char SelfTest){
+void vAccRegSelfTest(const char SelfTest){
     if((SelfTest & ACC_SELF_TEST_PROHIBITED) != ACC_SELF_TEST_PROHIBITED){ //Avoid not allowed state
         ACC->CTRL_REG5 = (ACC->CTRL_REG5 & ~ACC_SELF_TEST_MASK) 
                        | (SelfTest & ACC_SELF_TEST_MASK);
     }
 }
 
-void vAccSetFIFOMode(const char FIFOMode){
+void vAccRegSetFIFOMode(const char FIFOMode){
     ACC->FIFO_CTRL = (ACC->FIFO_CTRL & ~ACC_FIFO_MODE_MASK) 
                    | (FIFOMode & ACC_FIFO_MODE_MASK);
 }
 
-void vAccBlockDataUpdate(){
+void vAccRegBlockDataUpdate(){
     ACC->CTRL_REG4 |= 1 << 3;
 }
 
-void vAccEnableAxis(const char Axis){
+void vAccRegEnableAxis(const char Axis){
     ACC->CTRL_REG4 |= (Axis & ACC_AXIS_MASK);
 }
 
-void vAccDisableAxis(const char Axis){
+void vAccRegDisableAxis(const char Axis){
     ACC->CTRL_REG4 &= ~(Axis & ACC_AXIS_MASK);
 }
 
-void vAccSoftReset(){
+void vAccRegSoftReset(){
     ACC->CTRL_REG3 |= 1;
 }
 
-void vAccSetSPIMode(const char SPIMode){
+void vAccRegSetSPIMode(const char SPIMode){
     ACC->CTRL_REG5 = (ACC->CTRL_REG5 & ~(ACC_SPI_MODE_3WIRE))
                    | (SPIMode & ACC_SPI_MODE_3WIRE);
 }
 
-void vAccEnableFIFO(){
+void vAccRegEnableFIFO(){
     ACC->CTRL_REG6 |= 1 << 6;
 }
 
-void vAccDisableFIFO(){
+void vAccRegDisableFIFO(){
     ACC->CTRL_REG6 &= ~(1 << 6);
 }
 
-void vAccForceReboot(){
+void vAccRegForceReboot(){
     ACC->CTRL_REG6 |= 1 << 7;
 }
 
-void vAccAddrIncON(){
+void vAccRegAddrIncON(){
     ACC->CTRL_REG6 |= 1 << 4;
 }
 
-void vAccAddrIncOFF(){
+void vAccRegAddrIncOFF(){
     ACC->CTRL_REG6 &= ~(1 << 4);
 }
 
-int iAccIsDataOverrun(){
+int iAccRegIsDataOverrun(){
     return ACC->STATUS & (1 << 7);
 }
 
-int iAccIsDataOverrun(const char Axis){
+int iAccRegIsDataOverrun(const char Axis){
     return ACC->STATUS & ((Axis & ACC_AXIS_MASK) << 4);
 }
 
-int iAccIsDataReady(){
+int iAccRegIsDataReady(){
     return ACC->STATUS & (1 << 3);
 }
 
-int iAccIsDataReady(const char Axis){
+int iAccRegIsDataReady(const char Axis){
     return ACC->STATUS & (Axis & ACC_AXIS_MASK);
 }
 
-int iAccIsFIFOFilled(){
+int iAccRegIsFIFOFilled(){
     return ACC->FIFO_SRC & (1 << 6);
 }
 
-int iAccIsFIFOEmpty(){
+int iAccRegIsFIFOEmpty(){
     return ACC->FIFO_SRC & (1 << 5);
 }
 

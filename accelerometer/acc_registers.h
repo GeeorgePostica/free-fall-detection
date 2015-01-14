@@ -250,86 +250,88 @@ typedef struct{
 //#define LOCAL_ACC_FUNCTIONS
 #ifndef LOCAL_ACC_FUNCTIONS        /* Define it to have different set of functions*/
 
-void vAccSetODR(const char ODR);
+ACC_TypeDef ACC;
 
-void vAccSetFScale(const char FScale);
+void vAccRegSetODR(const char ODR);
 
-void vAccSelfTest(const char SelfTest);
+void vAccRegSetFScale(const char FScale);
 
-void vAccSetFIFOMode(const char FIFOMode);
+void vAccRegSelfTest(const char SelfTest);
 
-void vAccBlockDataUpdate();
+void vAccRegSetFIFOMode(const char FIFOMode);
 
-void vAccEnableAxis(const char Axis);
+void vAccRegBlockDataUpdate();
 
-void vAccDisableAxis(const char Axis);
+void vAccRegEnableAxis(const char Axis);
 
-void vAccSoftReset();
+void vAccRegDisableAxis(const char Axis);
 
-void vAccSetSPIMode(const char SPIMode);
+void vAccRegSoftReset();
 
-void vAccEnableFIFO();
+void vAccRegSetSPIMode(const char SPIMode);
 
-void vAccDisableFIFO();
+void vAccRegEnableFIFO();
 
-void vAccForceReboot();
+void vAccRegDisableFIFO();
 
-void vAccAddrIncON();
+void vAccRegForceReboot();
 
-void vAccAddrIncOFF();
+void vAccRegAddrIncON();
 
-int iAccIsDataOverrun();
+void vAccRegAddrIncOFF();
 
-int iAccIsDataOverrun(const char Axis);
+int iAccRegIsDataOverrun();
 
-int iAccIsDataReady();
+int iAccRegIsDataOverrun(const char Axis);
 
-int iAccIsDataReady(const char Axis);
+int iAccRegIsDataReady();
 
-int iAccIsFIFOFilled();
+int iAccRegIsDataReady(const char Axis);
 
-int iAccIsFIFOEmpty();
+int iAccRegIsFIFOFilled();
+
+int iAccRegIsFIFOEmpty();
 
 #else
-void vAccSetODR(ACC_TypeDef &ACC, const char ODR);
+void vAccRegSetODR(ACC_TypeDef &ACC, const char ODR);
 
-void vAccSetFScale(ACC_TypeDef &ACC, const char FScale);
+void vAccRegSetFScale(ACC_TypeDef &ACC, const char FScale);
 
-void vAccSelfTest(ACC_TypeDef &ACC, const char SelfTest);
+void vAccRegSelfTest(ACC_TypeDef &ACC, const char SelfTest);
 
-void vAccSetFIFOMode(ACC_TypeDef &ACC, const char FIFOMode);
+void vAccRegSetFIFOMode(ACC_TypeDef &ACC, const char FIFOMode);
 
-void vAccBlockDataUpdate(ACC_TypeDef &ACC);
+void vAccRegBlockDataUpdate(ACC_TypeDef &ACC);
 
-void vAccEnableAxis(ACC_TypeDef &ACC, const char Axis);
+void vAccRegEnableAxis(ACC_TypeDef &ACC, const char Axis);
 
-void vAccDisableAxis(ACC_TypeDef &ACC, const char Axis);
+void vAccRegDisableAxis(ACC_TypeDef &ACC, const char Axis);
 
-void vAccSoftReset(ACC_TypeDef &ACC);
+void vAccRegSoftReset(ACC_TypeDef &ACC);
 
-void vAccSetSPIMode(ACC_TypeDef &ACC, const char SPIMode);
+void vAccRegSetSPIMode(ACC_TypeDef &ACC, const char SPIMode);
 
-void vAccEnableFIFO(ACC_TypeDef &ACC);
+void vAccRegEnableFIFO(ACC_TypeDef &ACC);
 
-void vAccDisableFIFO(ACC_TypeDef &ACC);
+void vAccRegDisableFIFO(ACC_TypeDef &ACC);
 
-void vAccForceReboot(ACC_TypeDef &ACC);
+void vAccRegForceReboot(ACC_TypeDef &ACC);
 
-void vAccAddrIncON(ACC_TypeDef &ACC);
+void vAccRegAddrIncON(ACC_TypeDef &ACC);
 
-void vAccAddrIncOFF(ACC_TypeDef &ACC);
+void vAccRegAddrIncOFF(ACC_TypeDef &ACC);
 
-int iAccIsDataOverrun(ACC_TypeDef ACC);
+int iAccRegIsDataOverrun(ACC_TypeDef ACC);
 
-int iAccIsDataOverrun(ACC_TypeDef &ACC, const char Axis);
+int iAccRegIsDataOverrun(ACC_TypeDef &ACC, const char Axis);
 
-int iAccIsDataReady(ACC_TypeDef ACC);
+int iAccRegIsDataReady(ACC_TypeDef ACC);
 
-int iAccIsDataReady(ACC_TypeDef &ACC, const char Axis);
+int iAccRegIsDataReady(ACC_TypeDef &ACC, const char Axis);
 
-int iAccIsFIFOFilled(ACC_TypeDef ACC);
+int iAccRegIsFIFOFilled(ACC_TypeDef ACC);
 
-int iAccIsFIFOEmpty(ACC_TypeDef ACC);
+int iAccRegIsFIFOEmpty(ACC_TypeDef ACC);
 
 #endif
 
