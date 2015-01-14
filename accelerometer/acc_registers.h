@@ -1,19 +1,51 @@
 /* 
  * File:   acc_registers.h
  * Author: george
- *
+ * This file contains all the needed register addresses and other options
  * Created on January 13, 2015, 1:21 PM
  */
 
 #ifndef ACC_REGISTERS_H
 #define	ACC_REGISTERS_H
 
+/* Accelerometer Operating Data Rates*/
+#define ACC_ODR_MASK        0xF0
+#define ACC_ODR_POWER_DOWN  0x00
+#define ACC_ODR_3125mHz     0x10
+#define ACC_ODR_6250mHz     0x20
+#define ACC_ODR_12500mHz    0x30
+#define ACC_ODR_25Hz        0x40
+#define ACC_ODR_50Hz        0x50
+#define ACC_ODR_100Hz       0x60
+#define ACC_ODR_400Hz       0x70
+#define ACC_ODR_800Hz       0x80
+#define ACC_ODR_1600Hz      0x90
 
-#include <stdint.h>
+/* Accelerometer Full-Scale Values*/
+#define ACC_FSCALE_MASK     0x38
+#define ACC_FSCALE_2G       0x00
+#define ACC_FSCALE_4G       0x08
+#define ACC_FSCALE_6G       0x10
+#define ACC_FSCALE_8G       0x18
+#define ACC_FSCALE_16G      0x20
+
+/* Self Test Selection */
+#define ACC_SELF_TEST_MASK              0x06
+#define ACC_SELF_TEST_NORMAL            0x00
+#define ACC_SELF_TEST_POSITIVE_SIGN     0x02
+#define ACC_SELF_TEST_NEGATIVE_SIGN     0x04
+#define ACC_SELF_TEST_PROHIBITED        0x06
+
+/* FIFO Selection modes */
+#define ACC_FIFO_MODE_MASK                  0xE0
+#define ACC_FIFO_MODE_BYPASS                0x00
+#define ACC_FIFO_MODE_FIFO                  0x20
+#define ACC_FIFO_MODE_STREAM                0x40
+#define ACC_FIFO_MODE_STREAM_THEN_FIFO      0x60
+#define ACC_FIFO_MODE_BYPASS_THEN_STREAM    0x80
+#define ACC_FIFO_MODE_BYPASS_THEN_FIFO      0xE0
 
 #define ACC ((ACC_TypeDef *) 0x20)
-
-#define HZ50 0x50
 
 typedef struct{
     volatile char CTRL_REG4; /* |bit|def | name | info
@@ -109,6 +141,30 @@ typedef struct{
                              * 1=FIFO filling is equal or higher than WTM level */
     
 } ACC_TypeDef;
+
+/************ Accelerometer registers control functions **********************/
+
+void vAccSetODR(const char ODR){
+    ACC->CTRL_REG4 = (ACC->CTRL_REG4 & ~ACC_ODR_MASK) 
+                   | (ODR & ACC_ODR_MASK);
+}
+
+void vAccSetFScale(const char FScale){
+    ACC->CTRL_REG5 = (ACC->CTRL_REG5 & ~ACC_FSCALE_MASK) 
+                   | (FScale & ACC_FSCALE_MASK);
+}
+
+void vAccSelfTest(const char SelfTest){
+    if((SelfTest & ACC_SELF_TEST_PROHIBITED) != ACC_SELF_TEST_PROHIBITED){ //Avoid not allowed state
+        ACC->CTRL_REG5 = (ACC->CTRL_REG5 & ~ACC_SELF_TEST_MASK) 
+                       | (SelfTest & ACC_SELF_TEST_MASK);
+    }
+}
+
+void vAccSetFIFOMode(const char FIFOMode){
+    ACC->FIFO_CTRL = (ACC->FIFO_CTRL & ~ACC_FIFO_MODE_MASK) 
+                   | (FIFOMode & ACC_FIFO_MODE_MASK);
+}
 
 #endif	/* ACC_REGISTERS_H */
 
