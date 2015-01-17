@@ -262,13 +262,15 @@ void vAccRegSetFIFOMode(const char FIFOMode);
 
 void vAccRegBlockDataUpdate();
 
-void vAccRegEnableAxis(const char Axis);
-
-void vAccRegDisableAxis(const char Axis);
+void vAccRegEnableDataUpdate();
 
 void vAccRegSoftReset();
 
 void vAccRegSetSPIMode(const char SPIMode);
+
+void vAccRegEnableAxis(const char Axis);
+
+void vAccRegDisableAxis(const char Axis);
 
 void vAccRegEnableFIFO();
 
@@ -282,11 +284,11 @@ void vAccRegAddrIncOFF();
 
 int iAccRegIsDataOverrun();
 
-int iAccRegIsDataOverrun(const char Axis);
+int iAccRegIsDataOverrunAxis(const char Axis);
 
 int iAccRegIsDataReady();
 
-int iAccRegIsDataReady(const char Axis);
+int iAccRegIsDataReadyAxis(const char Axis);
 
 int iAccRegIsFIFOFilled();
 

@@ -9,21 +9,35 @@
 #define	ACC_CONTROLS_H
 
 #define ACC_G           9.8
-#define ACC_FLOAT_2G    1/(2*ACC_G)
-#define ACC_FLOAT_4G    1/(4*ACC_G)
-#define ACC_FLOAT_6G    1/(6*ACC_G)
-#define ACC_FLOAT_8G    1/(8*ACC_G)
-#define ACC_FLOAT_16G   1/(16*ACC_G)
+#define ACC_SCALE_2G    2
+#define ACC_SCALE_4G    4
+#define ACC_SCALE_6G    6
+#define ACC_SCALE_8G    8
+#define ACC_SCALE_16G   16
+
+typedef struct{
+    float scale;
+    float freq;
+    int fifo;
+} ACC_StatusType;
 
 void vAccInit();
-float fAccGetX();
-float fAccGetY();
-float fAccGetZ();
-float* pfAccGetXYZ();
+float fAccGetX();       /* Get the acceleration along X-axis. [m/s^2] */
+float fAccGetY();       /* Get the acceleration along Y-axis. [m/s^2] */
+float fAccGetZ();       /* Get the acceleration along Z-axis. [m/s^2] */
+float* pfAccGetXYZ();   /* Get the acceleration along all axis. [m/s^2] */
 void vAccSoftReset();
 void vAccReboot();
-
-
+void vAccSetScale(int scale);
+void vAccSetRate(char rate);
+void vAccEnableAxis(const char Axis, int enable);
+void vAccEnableFIFO(int enable);
+int iAccIsDataOverrun();
+int iAccIsDataOverrun(const char Axis);
+int iAccIsDataReady();
+int iAccIsDataReady(const char Axis);
+int iAccIsFIFOFilled();
+int iAccIsFIFOEmpty();
 
 #endif	/* ACC_CONTROLS_H */
 

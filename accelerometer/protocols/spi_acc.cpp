@@ -10,6 +10,18 @@ typedef Gpio<GPIOE_BASE,3> cs;
 
 int iSpiNextSCKValue;
 
+/***************FUNCTION PROTOTYPES************/
+int iSpiWrite(char addr, char data[], int len);
+int iSpiRead(char addr, char* data, int len);
+void vSpiStartTransmission();
+void vSpiEndTransmission();
+void vSpiSendData(char data);
+char cSpiReceiveData();
+void vSpiAccSckHigh();
+void vSpiAccSckLow();
+void vSpiDelay();
+/**********************************************/
+
 void vSpiInit(){
     sck::mode(Mode::ALTERNATE);
     sck::alternateFunction(0);
@@ -24,23 +36,24 @@ void vSpiInit(){
 }
 
 void vSpiWriteByte(char addr, char data){
-    iSpiWrite(addr, *data, 1);
+    char byte[] = {data};
+    iSpiWrite(addr, byte, 1);
 }
 
 void vSpiWriteShort(char addr, unsigned short data){
-    char bytes[] = { (data >> 8) , data };
+    char bytes[] = { (char)(data >> 8) , (char)data };
     iSpiWrite(addr, bytes, 2);
 }
 
 void vSpiWriteInt(char addr, unsigned int data){
-    char bytes[] = { (data >> 24) ,
-                     (data >> 16) ,
-                     (data >> 8)  ,
-                     data           };
+    char bytes[] = { (char)(data >> 24) ,
+                     (char)(data >> 16) ,
+                     (char)(data >> 8)  ,
+                     (char)data           };
     iSpiWrite(addr, bytes, 4);
 }
 
-int iSpiWrite(char addr, char *data, int len){
+int iSpiWrite(char addr, char data[], int len){
     if(len < 1) return 0;
     
     char byte1 = (addr & ~SPI_ACC_RW) | SPI_ACC_MS;
@@ -51,9 +64,8 @@ int iSpiWrite(char addr, char *data, int len){
     vSpiSendData(byte1);
     
     //Sending the (multiple) data bytes in SPI order
-    char clen = (char) len;
-    while(clen-- > 0){
-        vSpiSendData(*(data + clen));
+    while(len-- > 0){
+        vSpiSendData(data[len]);
     }
     
     vSpiEndTransmission();
@@ -61,7 +73,7 @@ int iSpiWrite(char addr, char *data, int len){
 }
 
 void vSpiReadByte(char addr, char &data){
-    iSpiRead(addr, *data, 1);
+    iSpiRead(addr, &data, 1);
 }
 
 void vSpiReadBytesSPIorder(char addr, char data[], int len){
@@ -103,7 +115,7 @@ int iSpiRead(char addr, char* data, int len){
     //Receiving the (multiple) data bytes in SPI order
     char clen = (char) len;
     while(clen-- > 0){
-        *(data + clen) = vSpiReceiveData();  /* NOTE: that data is received in 
+        *(data + clen) = cSpiReceiveData();  /* NOTE: that data is received in 
                                               * SPI mode that is: from the LS byte
                                               * to the MS byte */
     }
@@ -121,8 +133,8 @@ void vSpiSendData(char data){
     }
 }
 
-char vSpiReceiveData(){
-    char data;
+char cSpiReceiveData(){
+    char data = 0;
     vSpiAccSckHigh();
     for(char bit = 0x80; bit; bit >>= 1){
         if(miso::value()){

@@ -31,6 +31,10 @@ void vAccRegBlockDataUpdate(){
     ACC.CTRL_REG4 |= 1 << 3;
 }
 
+void vAccRegEnableDataUpdate(){
+    ACC.CTRL_REG4 |= 0 << 3;
+}
+
 void vAccRegEnableAxis(const char Axis){
     ACC.CTRL_REG4 |= (Axis & ACC_AXIS_MASK);
 }
@@ -72,7 +76,7 @@ int iAccRegIsDataOverrun(){
     return ACC.STATUS & (1 << 7);
 }
 
-int iAccRegIsDataOverrun(const char Axis){
+int iAccRegIsDataOverrunAxis(const char Axis){
     return ACC.STATUS & ((Axis & ACC_AXIS_MASK) << 4);
 }
 
@@ -80,7 +84,7 @@ int iAccRegIsDataReady(){
     return ACC.STATUS & (1 << 3);
 }
 
-int iAccRegIsDataReady(const char Axis){
+int iAccRegIsDataReadyAxis(const char Axis){
     return ACC.STATUS & (Axis & ACC_AXIS_MASK);
 }
 

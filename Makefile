@@ -17,7 +17,10 @@ SUBDIRS := $(KPATH)
 ## List here your source files (both .s, .c and .cpp)
 ##
 SRC :=                                  \
-main.cpp
+main.cpp				\
+accelerometer/acc_registers.c		\
+accelerometer/acc_controls.cpp		\
+accelerometer/protocols/spi_acc.cpp
 
 ##
 ## List here additional static libraries with relative path
