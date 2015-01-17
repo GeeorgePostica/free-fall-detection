@@ -18,7 +18,6 @@ SUBDIRS := $(KPATH)
 ##
 SRC :=                                  \
 main.cpp				\
-accelerometer/acc_registers.c		\
 accelerometer/acc_controls.cpp		\
 accelerometer/protocols/spi_acc.cpp
 

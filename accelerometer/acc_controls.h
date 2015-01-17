@@ -28,8 +28,9 @@ float fAccGetZ();       /* Get the acceleration along Z-axis. [m/s^2] */
 float* pfAccGetXYZ();   /* Get the acceleration along all axis. [m/s^2] */
 void vAccSoftReset();
 void vAccReboot();
-void vAccSetScale(int scale);
-void vAccSetRate(char rate);
+void vAccSetScale(const char scale);
+void vAccSetRate(const char rate);
+//void vAccSelfTest(const char SelfTest);
 void vAccEnableAxis(const char Axis, int enable);
 void vAccEnableFIFO(int enable);
 int iAccIsDataOverrun();
