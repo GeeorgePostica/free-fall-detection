@@ -40,5 +40,7 @@ int iAccIsDataReady(const char Axis);
 int iAccIsFIFOFilled();
 int iAccIsFIFOEmpty();
 
+char cAccGetINFO(char infoReg);
+
 #endif	/* ACC_CONTROLS_H */
 

@@ -59,6 +59,9 @@
 
 /******************** REGISTERS ADDRESSES **************************/
 //#define ACC ((ACC_TypeDef *) 0x20)
+#define ACC_ADDR_INFO1      0x0D
+#define ACC_ADDR_INFO2      0x0E
+#define ACC_ADDR_WHO_AM_I   0x0F
 
 #define ACC_ADDR_CTRL_REG3  0x23    /*ADDRESS: 0x23
                                     * |bit|def|   name    | info

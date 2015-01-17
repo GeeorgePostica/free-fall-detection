@@ -15,9 +15,10 @@ void vAccSetSPIMode(const char SPIMode);
 
 void vAccInit(){
     vSpiInit();
-    vAccSetSPIMode(ACC_SPI_MODE_4WIRE);
-    vSpiWriteByte(ACC_ADDR_CTRL_REG5, ACC.CTRL_REG5);
-    vAccSoftReset();
+    vSpiWriteByte(ACC_ADDR_CTRL_REG4, 0x5F);
+    //vAccSetRate(ACC_ODR_800Hz);
+    //vAccSetSPIMode(ACC_SPI_MODE_4WIRE);
+    //vAccSoftReset();
 }
 
 void vAccReboot(){
@@ -46,7 +47,7 @@ short sAccGetAxis(char axisRegAddress){
     short res;
     vAccBlockDataUpdate(1);
     vAccEnableAddrInc(1); 
-    vSpiReadShort(axisRegAddress, res);
+    res = sSpiReadShort(axisRegAddress);
     vAccEnableAddrInc(0);
     vAccBlockDataUpdate(0);
     return res;
@@ -132,32 +133,36 @@ void vAccEnableAddrInc(int enable){
 }
 
 int iAccIsDataOverrun(){
-    vSpiReadByte(ACC_ADDR_STATUS, ACC.STATUS);
+    ACC.STATUS = cSpiReadByte(ACC_ADDR_STATUS);
     return (int)(ACC.STATUS & (1 << 7));
 }
 
 int iAccIsDataOverrun(const char Axis){
-    vSpiReadByte(ACC_ADDR_STATUS, ACC.STATUS);
+    ACC.STATUS = cSpiReadByte(ACC_ADDR_STATUS);
     return (int)(ACC.STATUS & ((Axis & ACC_AXIS_MASK) << 4));
 }
 
 int iAccIsDataReady(){
-    vSpiReadByte(ACC_ADDR_STATUS, ACC.STATUS);
+    ACC.STATUS = cSpiReadByte(ACC_ADDR_STATUS);
     return (int)(ACC.STATUS & (1 << 3));
 }
 
 int iAccIsDataReady(const char Axis){
-    vSpiReadByte(ACC_ADDR_STATUS, ACC.STATUS);
+    ACC.STATUS = cSpiReadByte(ACC_ADDR_STATUS);
     return (int)(ACC.STATUS & (Axis & ACC_AXIS_MASK));
 }
 
 int iAccIsFIFOFilled(){
-    vSpiReadByte(ACC_ADDR_FIFO_SRC, ACC.FIFO_SRC);
+    ACC.FIFO_SRC = cSpiReadByte(ACC_ADDR_FIFO_SRC);
     return (int)(ACC.FIFO_SRC & (1 << 6));
 }
 
 int iAccIsFIFOEmpty(){
-    vSpiReadByte(ACC_ADDR_FIFO_SRC, ACC.FIFO_SRC);
+    ACC.FIFO_SRC = cSpiReadByte(ACC_ADDR_FIFO_SRC);
     return (int)(ACC.FIFO_SRC & (1 << 5));
+}
+
+char cAccGetINFO(char infoReg){
+    return cSpiReadByte(infoReg);
 }
 

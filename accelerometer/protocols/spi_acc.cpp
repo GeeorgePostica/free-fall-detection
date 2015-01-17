@@ -6,33 +6,64 @@ using namespace miosix;
 typedef Gpio<GPIOA_BASE,5> sck;
 typedef Gpio<GPIOA_BASE,6> miso;
 typedef Gpio<GPIOA_BASE,7> mosi;
-typedef Gpio<GPIOE_BASE,3> cs;
+typedef Gpio<GPIOA_BASE,4> cs;
+
+typedef Gpio<GPIOD_BASE,13> ledSCK;   //JUST FOR TEST
+typedef Gpio<GPIOD_BASE,12> ledRX;   //JUST FOR TEST
 
 int iSpiNextSCKValue;
 
 /***************FUNCTION PROTOTYPES************/
-int iSpiWrite(char addr, char data[], int len);
+int iSpiWrite(char addr, char* data, int len);
 int iSpiRead(char addr, char* data, int len);
 void vSpiStartTransmission();
 void vSpiEndTransmission();
 void vSpiSendData(char data);
 char cSpiReceiveData();
-void vSpiAccSckHigh();
-void vSpiAccSckLow();
-void vSpiDelay();
 /**********************************************/
 
 void vSpiInit(){
+    if(SPI == SPI1){
+        RCC->APB2ENR |= RCC_APB2ENR_SPI1EN;             /* Enable clock for SPI */
+    }
+    else if(SPI == SPI2){
+        RCC->APB1ENR |= RCC_APB1ENR_SPI2EN;             /* Enable clock for SPI */
+    }
+    else {
+        RCC->APB1ENR |= RCC_APB1ENR_SPI3EN;             /* Enable clock for SPI */
+    }
+    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;            /* Enable clock on GPIOA */
+    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOEEN;            /* Enable clock on GPIOE */
+    
+    SPI->CR1 &= ~(SPI_CR1_CPHA | SPI_CR1_CPOL);    /* Set the CPHA=0 and CPOL=0 */
+    SPI->CR1 |= SPI_CR1_MSTR;                      /* Set the master mode */
+    SPI->CR1 |= SPI_CR1_BIDIMODE;                  /* Enable Full Duplex */
+    //SPI->CR1 |= SPI_CR1_SSI;                       /* Enable auto slave select */
+    //SPI->CR2 |= SPI_CR2_SSOE;                      /* Enable SS output */
+    SPI->CR1 |= SPI_CR1_SSM;                        /* Manage software slave select */
+    SPI->CR1 |= SPI_CR1_DFF;                        /* LSB first */
+    SPI->CR2 &= ~SPI_CR2_FRF;                       /* 8bit transfer */
+    
+    SPI->CR1 |= SPI_CR1_SPE;                       /* Enable the SPI */
+    
+    //SPI->DR = 0;                                    /* Empty the buffer */
+    
     sck::mode(Mode::ALTERNATE);
-    sck::alternateFunction(0);
+    sck::alternateFunction(5);
     miso::mode(Mode::ALTERNATE);
-    miso::alternateFunction(0);
+    miso::alternateFunction(5);
     mosi::mode(Mode::ALTERNATE);
-    mosi::alternateFunction(0);
+    mosi::alternateFunction(5);
+    //cs::mode(Mode::ALTERNATE);
+    //cs::alternateFunction(5);
     cs::mode(Mode::OUTPUT);
     cs::high();
-    sck::high();
-    iSpiNextSCKValue = 1;
+    
+    
+    ledSCK::mode(Mode::OUTPUT);
+    ledSCK::low();
+    ledRX::mode(Mode::OUTPUT);
+    ledRX::low();
 }
 
 void vSpiWriteByte(char addr, char data){
@@ -53,27 +84,33 @@ void vSpiWriteInt(char addr, unsigned int data){
     iSpiWrite(addr, bytes, 4);
 }
 
-int iSpiWrite(char addr, char data[], int len){
+int iSpiWrite(char addr, char* data, int len){
     if(len < 1) return 0;
     
-    char byte1 = (addr & ~SPI_ACC_RW) | SPI_ACC_MS;
+    char byte1 = (addr & ~SPI_ACC_RW) & ~SPI_ACC_MS;    /* Set the write bit */
     
     vSpiStartTransmission();
     
     //Sending the first byte
     vSpiSendData(byte1);
     
+    cSpiReceiveData();      /* Wait for the incoming useless data */
+    //SPI->DR = 0;        /* Empty the data buffer */
+    
     //Sending the (multiple) data bytes in SPI order
     while(len-- > 0){
-        vSpiSendData(data[len]);
+        vSpiSendData(data[len]);    /* Send a byte of data */
+        cSpiReceiveData();          /* Discard the useless data */
     }
     
     vSpiEndTransmission();
     return 1;
 }
 
-void vSpiReadByte(char addr, char &data){
-    iSpiRead(addr, &data, 1);
+char cSpiReadByte(char addr){
+    char byte[] = { 0 };
+    iSpiRead(addr, byte, 1);
+    return byte[0];
 }
 
 void vSpiReadBytesSPIorder(char addr, char data[], int len){
@@ -88,10 +125,10 @@ void vSpiReadBytes(char addr, char data[], int len){
     }
 }
 
-void vSpiReadShort(char addr, short &data){
+short sSpiReadShort(char addr){
     char bytes[2];
     iSpiRead(addr, bytes, 2);
-    data = bytes[1]*0x100 + bytes[0];
+    return (short) (bytes[1]*0x100 + bytes[0]);
 }
 
 void vSpiReadArrayShort(char addr, short data[], int len){
@@ -105,7 +142,7 @@ void vSpiReadArrayShort(char addr, short data[], int len){
 int iSpiRead(char addr, char* data, int len){
     if(len < 1) return 0;
     
-    char byte1 = (addr | SPI_ACC_RW) | SPI_ACC_MS;
+    char byte1 = (addr | SPI_ACC_RW) & ~SPI_ACC_MS;
     
     vSpiStartTransmission();
     
@@ -113,9 +150,8 @@ int iSpiRead(char addr, char* data, int len){
     vSpiSendData(byte1);
     
     //Receiving the (multiple) data bytes in SPI order
-    char clen = (char) len;
-    while(clen-- > 0){
-        *(data + clen) = cSpiReceiveData();  /* NOTE: that data is received in 
+    while(len-- > 0){
+        data[len] = cSpiReceiveData();  /* NOTE: that data is received in 
                                               * SPI mode that is: from the LS byte
                                               * to the MS byte */
     }
@@ -125,62 +161,30 @@ int iSpiRead(char addr, char* data, int len){
 }
 
 void vSpiSendData(char data){
-    vSpiAccSckLow();
-    for(char bit = 0x80; bit; bit >>= 1){
-        (data & bit) ? mosi::high() : mosi::low();
-        vSpiAccSckHigh();
-        vSpiAccSckLow();
-    }
+    while((SPI->SR & SPI_SR_TXE) == 0);
+    ledRX::high();
+    SPI->DR = data;
+    //ledRX::low();
 }
 
 char cSpiReceiveData(){
-    char data = 0;
-    vSpiAccSckHigh();
-    for(char bit = 0x80; bit; bit >>= 1){
-        if(miso::value()){
-            data |= 1 << (bit-1);
-        }
-        vSpiAccSckLow();
-        vSpiAccSckHigh();
-    }
+    char data;
+    while((SPI->SR & SPI_SR_RXNE) == 0);
+    ledRX::low();
+    data = SPI->DR;
+    if(data) ledRX::high();
+    //SPI->DR = 0;
     return data;
 }
 
-void vSpiAccSckHigh(){
-    if(!iSpiNextSCKValue){
-        while(sck::value());
-        vSpiDelay();
-        sck::high();
-        iSpiNextSCKValue = 1;
-    }
-}
-
-void vSpiAccSckLow(){
-    if(iSpiNextSCKValue){
-        while(!sck::value());
-        vSpiDelay();
-        sck::low();
-        iSpiNextSCKValue = 0;
-    }
-}
-
-void vSpiDelay(){
-    usleep(SPI_ACC_SLEEP_us);
-}
-
 void vSpiStartTransmission(){
-    if(!sck::value()){
-        sck::high();
-        while(!sck::value());
-    }
     cs::low();
+    //SPI->CR1 |= SPI_CR1_SPE;
+    ledSCK::high();
 }
 
 void vSpiEndTransmission(){
-    if(!sck::value()){
-        sck::high();
-        while(!sck::value());
-    }
-    vSpiDelay();
+    //SPI->CR1 &= ~SPI_CR1_SPE;
     cs::high();
+    ledSCK::low();
 }

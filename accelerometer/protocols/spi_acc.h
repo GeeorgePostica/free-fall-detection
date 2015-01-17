@@ -8,20 +8,23 @@
 #ifndef SPI_ACC_H
 #define	SPI_ACC_H
 
-#define SPI_ACC_FREQ        4800        //Yet to be determined
+#define SPI_ACC_FREQ        2        //Yet to be determined
 #define SPI_ACC_SLEEP_us    (int)(1000000/SPI_ACC_FREQ/16)
 
 #define SPI_ACC_RW          0x80    /* 1: Read (OR)  0: Write (AND NOT) */
 #define SPI_ACC_MS          0x60    /* 1: Master (OR) 0: Slave (AND NOT) */
 
+#define SPI SPI1
+#define SPI_BUFFER_RESET    0
+
 void vSpiInit();
 void vSpiWriteByte(char addr, char data);
 void vSpiWriteShort(char addr, unsigned short data);
 void vSpiWriteInt(char addr, unsigned int data);
-void vSpiReadByte(char addr, char& data);
+char cSpiReadByte(char addr);
 void vSpiReadBytes(char addr, char data[], int len);
 void vSpiReadBytesSPIorder(char addr, char data[], int len);
-void vSpiReadShort(char addr, short& data);
+short sSpiReadShort(char addr);
 void vSpiReadArrayShort(char addr, short data[], int len);
 
 #endif	/* SPI_ACC_H */
