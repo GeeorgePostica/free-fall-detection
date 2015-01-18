@@ -11,41 +11,41 @@
 #define	ACC_REGISTERS_H
 
 /* Accelerometer Operating Data Rates*/
-#define ACC_ODR_MASK        0xF0
-#define ACC_ODR_POWER_DOWN  0x00
-#define ACC_ODR_3125mHz     0x10
-#define ACC_ODR_6250mHz     0x20
-#define ACC_ODR_12500mHz    0x30
-#define ACC_ODR_25Hz        0x40
-#define ACC_ODR_50Hz        0x50
-#define ACC_ODR_100Hz       0x60
-#define ACC_ODR_400Hz       0x70
-#define ACC_ODR_800Hz       0x80
-#define ACC_ODR_1600Hz      0x90
+#define ACC_ODR_MASK                  0xF0
+#define ACC_CTRL_REG4_ODR_POWER_DOWN  0x00
+#define ACC_CTRL_REG4_ODR_3125mHz     0x10
+#define ACC_CTRL_REG4_ODR_6250mHz     0x20
+#define ACC_CTRL_REG4_ODR_12500mHz    0x30
+#define ACC_CTRL_REG4_ODR_25Hz        0x40
+#define ACC_CTRL_REG4_ODR_50Hz        0x50
+#define ACC_CTRL_REG4_ODR_100Hz       0x60
+#define ACC_CTRL_REG4_ODR_400Hz       0x70
+#define ACC_CTRL_REG4_ODR_800Hz       0x80
+#define ACC_CTRL_REG4_ODR_1600Hz      0x90
 
 /* Accelerometer Full-Scale Values*/
-#define ACC_FSCALE_MASK     0x38
-#define ACC_FSCALE_2G       0x00
-#define ACC_FSCALE_4G       0x08    /* 4G Scale */
-#define ACC_FSCALE_6G       0x10
-#define ACC_FSCALE_8G       0x18
-#define ACC_FSCALE_16G      0x20
+#define ACC_FSCALE_MASK               0x38
+#define ACC_CTRL_REG5_FSCALE_2G       0x00
+#define ACC_CTRL_REG5_FSCALE_4G       0x08
+#define ACC_CTRL_REG5_FSCALE_6G       0x10
+#define ACC_CTRL_REG5_FSCALE_8G       0x18
+#define ACC_CTRL_REG5_FSCALE_16G      0x20
 
 /* Self Test Selection */
-#define ACC_SELF_TEST_MASK              0x06
-#define ACC_SELF_TEST_NORMAL            0x00
-#define ACC_SELF_TEST_POSITIVE_SIGN     0x02
-#define ACC_SELF_TEST_NEGATIVE_SIGN     0x04
-#define ACC_SELF_TEST_PROHIBITED        0x06
+#define ACC_SELF_TEST_MASK                        0x06
+#define ACC_CTRL_REG5_SELF_TEST_NORMAL            0x00
+#define ACC_CTRL_REG5_SELF_TEST_POSITIVE_SIGN     0x02
+#define ACC_CTRL_REG5_SELF_TEST_NEGATIVE_SIGN     0x04
+#define ACC_CTRL_REG5_SELF_TEST_PROHIBITED        0x06
 
 /* FIFO Selection modes */
-#define ACC_FIFO_MODE_MASK                  0xE0
-#define ACC_FIFO_MODE_BYPASS                0x00
-#define ACC_FIFO_MODE_FIFO                  0x20
-#define ACC_FIFO_MODE_STREAM                0x40
-#define ACC_FIFO_MODE_STREAM_THEN_FIFO      0x60
-#define ACC_FIFO_MODE_BYPASS_THEN_STREAM    0x80
-#define ACC_FIFO_MODE_BYPASS_THEN_FIFO      0xE0
+#define ACC_FIFO_MODE_MASK                       0xE0
+#define ACC_CTRL_FIFO_MODE_BYPASS                0x00
+#define ACC_CTRL_FIFO_MODE_FIFO                  0x20
+#define ACC_CTRL_FIFO_MODE_STREAM                0x40
+#define ACC_CTRL_FIFO_MODE_STREAM_THEN_FIFO      0x60
+#define ACC_CTRL_FIFO_MODE_BYPASS_THEN_STREAM    0x80
+#define ACC_CTRL_FIFO_MODE_BYPASS_THEN_FIFO      0xE0
 
 /* Accelerometer Axis for enabling/disabling */
 #define ACC_AXIS_MASK   0x05
@@ -248,7 +248,6 @@ typedef struct{
                              * 1=FIFO filling is equal or higher than WTM level */
     
 } ACC_TypeDef;
-
 
 #endif	/* ACC_REGISTERS_H */
 

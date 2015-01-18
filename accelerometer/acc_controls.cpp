@@ -1,9 +1,9 @@
-#include "acc_registers.h"
 #include "acc_controls.h"
+#include "acc_registers.h"
 #include "protocols/spi_acc.h"
 
 ACC_StatusType xAccStatus;
-ACC_TypeDef ACC;            //The data structure which represents the accelerometer
+ACC_TypeDef ACC;            /* The data structure which represents the accelerometer */
 
 /************ FUNCTION PROTOTYPES ***********/
 short sAccGetAxis(char axisRegAddress);
@@ -15,9 +15,15 @@ void vAccSetSPIMode(const char SPIMode);
 
 void vAccInit(){
     vSpiInit();
-    vSpiWriteByte(ACC_ADDR_CTRL_REG4, 0x5F);
+    
+    //vAccReboot();
+    //vSpiWriteByte(ACC_ADDR_CTRL_REG3, 0x67);
     //vAccSetRate(ACC_ODR_800Hz);
     //vAccSetSPIMode(ACC_SPI_MODE_4WIRE);
+    vSpiWriteByte(ACC_ADDR_CTRL_REG3, 0x81); // resetting the whole internal circuit (0xC9 for interrupts)
+    vSpiWriteByte(ACC_ADDR_CTRL_REG4, 0x97); // 1600Hz data update rate, block data update disable, x/y/z enabled 
+    vSpiWriteByte(ACC_ADDR_CTRL_REG5, 0x20); // Anti aliasing filter bandwidth 800Hz, 16G (very sensitive), no self-test, 4-wire interface
+    vSpiWriteByte(ACC_ADDR_CTRL_REG6, 0x10); // Enable auto increment
     //vAccSoftReset();
 }
 
@@ -46,9 +52,7 @@ float fAccGetZ(){
 short sAccGetAxis(char axisRegAddress){
     short res;
     vAccBlockDataUpdate(1);
-    vAccEnableAddrInc(1); 
     res = sSpiReadShort(axisRegAddress);
-    vAccEnableAddrInc(0);
     vAccBlockDataUpdate(0);
     return res;
 }
@@ -56,9 +60,7 @@ short sAccGetAxis(char axisRegAddress){
 float* pfAccGetXYZ(float xyz[]){
     short values[3];
     vAccBlockDataUpdate(1);
-    vAccEnableAddrInc(1); 
     vSpiReadArrayShort(ACC_ADDR_OUT_X_L, values, 3);
-    vAccEnableAddrInc(0);
     vAccBlockDataUpdate(0);
     xyz[0] = values[2] * xAccStatus.scale;    /*Order reversed due to SPI protocol*/
     xyz[1] = values[1] * xAccStatus.scale;
@@ -70,14 +72,14 @@ void vAccSetScale(const char scale){
     ACC.CTRL_REG5 = (ACC.CTRL_REG5 & ~ACC_FSCALE_MASK) 
                    | (scale & ACC_FSCALE_MASK);
     switch(scale){
-        case ACC_FSCALE_4G:     xAccStatus.scale = 1/(ACC_SCALE_4G*ACC_G);
-                                break;
-        case ACC_FSCALE_6G:     xAccStatus.scale = 1/(ACC_SCALE_6G*ACC_G);
-                                break;
-        case ACC_FSCALE_8G:     xAccStatus.scale = 1/(ACC_SCALE_8G*ACC_G);
-                                break;
-        case ACC_FSCALE_16G:    xAccStatus.scale = 1/(ACC_SCALE_16G*ACC_G);
-                                break;
+        case ACC_CTRL_REG5_FSCALE_4G:     xAccStatus.scale = 1/(ACC_SCALE_4G*ACC_G);
+                                          break;
+        case ACC_CTRL_REG5_FSCALE_6G:     xAccStatus.scale = 1/(ACC_SCALE_6G*ACC_G);
+                                          break;
+        case ACC_CTRL_REG5_FSCALE_8G:     xAccStatus.scale = 1/(ACC_SCALE_8G*ACC_G);
+                                          break;
+        case ACC_CTRL_REG5_FSCALE_16G:    xAccStatus.scale = 1/(ACC_SCALE_16G*ACC_G);
+                                          break;
         default:                xAccStatus.scale = 1/(ACC_SCALE_2G*ACC_G);
                                 break;
     }
@@ -91,7 +93,7 @@ void vAccSetRate(const char rate){
 }
 
 void vAccSelfTest(const char SelfTest){
-    if((SelfTest & ACC_SELF_TEST_PROHIBITED) != ACC_SELF_TEST_PROHIBITED){ //Avoid not allowed state
+    if((SelfTest & ACC_CTRL_REG5_SELF_TEST_PROHIBITED) != ACC_CTRL_REG5_SELF_TEST_PROHIBITED){ //Avoid not allowed state
         ACC.CTRL_REG5 = (ACC.CTRL_REG5 & ~ACC_SELF_TEST_MASK) 
                        | (SelfTest & ACC_SELF_TEST_MASK);
     }

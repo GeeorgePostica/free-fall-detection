@@ -1,4 +1,5 @@
 #include <miosix.h>
+#include <stdio.h>
 #include "accelerometer/acc_controls.h"
 #include "accelerometer/acc_registers.h"
 
@@ -20,10 +21,12 @@ int main()
     for(;;)
     {
         led2::high();
-        if(cAccGetINFO(ACC_ADDR_INFO1)) led1::high();
+        if(cAccGetINFO(ACC_ADDR_WHO_AM_I)) led1::high();
+        printf("Blue LED is ON\n");
         //else led1::low();
         Thread::sleep(2000);
         if(cAccGetINFO(ACC_ADDR_INFO2) == 0) led1::low();
+        printf("Blue LED is OFF\n");
         led2::low();
         Thread::sleep(2000);
     }

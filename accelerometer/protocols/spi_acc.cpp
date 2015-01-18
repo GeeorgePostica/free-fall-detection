@@ -6,7 +6,7 @@ using namespace miosix;
 typedef Gpio<GPIOA_BASE,5> sck;
 typedef Gpio<GPIOA_BASE,6> miso;
 typedef Gpio<GPIOA_BASE,7> mosi;
-typedef Gpio<GPIOA_BASE,4> cs;
+typedef Gpio<GPIOE_BASE,3> cs;
 
 typedef Gpio<GPIOD_BASE,13> ledSCK;   //JUST FOR TEST
 typedef Gpio<GPIOD_BASE,12> ledRX;   //JUST FOR TEST
@@ -23,6 +23,15 @@ char cSpiReceiveData();
 /**********************************************/
 
 void vSpiInit(){
+    sck::mode(Mode::ALTERNATE);
+    sck::alternateFunction(5);
+    miso::mode(Mode::ALTERNATE);
+    miso::alternateFunction(5);
+    mosi::mode(Mode::ALTERNATE);
+    mosi::alternateFunction(5);
+    //cs::mode(Mode::ALTERNATE);
+    //cs::alternateFunction(5);
+    
     if(SPI == SPI1){
         RCC->APB2ENR |= RCC_APB2ENR_SPI1EN;             /* Enable clock for SPI */
     }
@@ -33,7 +42,7 @@ void vSpiInit(){
         RCC->APB1ENR |= RCC_APB1ENR_SPI3EN;             /* Enable clock for SPI */
     }
     RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;            /* Enable clock on GPIOA */
-    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOEEN;            /* Enable clock on GPIOE */
+    //RCC->AHB1ENR |= RCC_AHB1ENR_GPIOEEN;            /* Enable clock on GPIOE */
     
     SPI->CR1 &= ~(SPI_CR1_CPHA | SPI_CR1_CPOL);    /* Set the CPHA=0 and CPOL=0 */
     SPI->CR1 |= SPI_CR1_MSTR;                      /* Set the master mode */
@@ -41,24 +50,16 @@ void vSpiInit(){
     //SPI->CR1 |= SPI_CR1_SSI;                       /* Enable auto slave select */
     //SPI->CR2 |= SPI_CR2_SSOE;                      /* Enable SS output */
     SPI->CR1 |= SPI_CR1_SSM;                        /* Manage software slave select */
-    SPI->CR1 |= SPI_CR1_DFF;                        /* LSB first */
-    SPI->CR2 &= ~SPI_CR2_FRF;                       /* 8bit transfer */
+    //SPI->CR1 |= SPI_CR1_DFF;                        /* LSB first */
+    SPI->CR1 |= SPI_CR1_BR_0 | SPI_CR1_BR_1 | SPI_CR1_BR_2;     /* Set the baud pre multiplier to 32 */
+    SPI->CR2 |= SPI_CR2_FRF;                       /* 16bit frame */
     
     SPI->CR1 |= SPI_CR1_SPE;                       /* Enable the SPI */
     
     //SPI->DR = 0;                                    /* Empty the buffer */
     
-    sck::mode(Mode::ALTERNATE);
-    sck::alternateFunction(5);
-    miso::mode(Mode::ALTERNATE);
-    miso::alternateFunction(5);
-    mosi::mode(Mode::ALTERNATE);
-    mosi::alternateFunction(5);
-    //cs::mode(Mode::ALTERNATE);
-    //cs::alternateFunction(5);
     cs::mode(Mode::OUTPUT);
     cs::high();
-    
     
     ledSCK::mode(Mode::OUTPUT);
     ledSCK::low();
@@ -93,7 +94,10 @@ int iSpiWrite(char addr, char* data, int len){
     
     //Sending the first byte
     vSpiSendData(byte1);
+    //while(!(SPI->SR & SPI_SR_TXE));
+    //SPI->DR = byte1;
     
+    //while(!(SPI->SR & SPI_SR_RXNE));
     cSpiReceiveData();      /* Wait for the incoming useless data */
     //SPI->DR = 0;        /* Empty the data buffer */
     
@@ -149,8 +153,11 @@ int iSpiRead(char addr, char* data, int len){
     //Send the address
     vSpiSendData(byte1);
     
+    cSpiReceiveData();
+    
     //Receiving the (multiple) data bytes in SPI order
     while(len-- > 0){
+        vSpiSendData(0x00);
         data[len] = cSpiReceiveData();  /* NOTE: that data is received in 
                                               * SPI mode that is: from the LS byte
                                               * to the MS byte */
@@ -161,18 +168,19 @@ int iSpiRead(char addr, char* data, int len){
 }
 
 void vSpiSendData(char data){
-    while((SPI->SR & SPI_SR_TXE) == 0);
-    ledRX::high();
+    while(!(SPI->SR & SPI_SR_TXE));
+    //ledRX::high();
     SPI->DR = data;
     //ledRX::low();
 }
 
 char cSpiReceiveData(){
     char data;
-    while((SPI->SR & SPI_SR_RXNE) == 0);
-    ledRX::low();
+    //ledRX::low();
+    while(!(SPI->SR & SPI_SR_RXNE));
+    //ledRX::low();
     data = SPI->DR;
-    if(data) ledRX::high();
+    if(SPI->DR) ledRX::high();
     //SPI->DR = 0;
     return data;
 }
