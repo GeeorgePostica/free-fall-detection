@@ -12,7 +12,7 @@
 #define SPI_ACC_SLEEP_us    (int)(1000000/SPI_ACC_FREQ/16)
 
 #define SPI_ACC_RW          0x80    /* 1: Read (OR)  0: Write (AND NOT) */
-#define SPI_ACC_MS          0x60    /* 1: Master (OR) 0: Slave (AND NOT) */
+#define SPI_ACC_MS          0x40    /* 1: Master (OR) 0: Slave (AND NOT) */
 
 #define SPI SPI1
 #define SPI_BUFFER_RESET    0

@@ -21,14 +21,14 @@ int main()
     for(;;)
     {
         led2::high();
-        if(cAccGetINFO(ACC_ADDR_WHO_AM_I)) led1::high();
-        printf("Blue LED is ON\n");
+        if(cAccGetINFO(ACC_ADDR_WHO_AM_I) == 0xff) led1::high();
+        printf("Blue LED is ON\n\n");
         //else led1::low();
-        Thread::sleep(2000);
+        Thread::sleep(14000);
         if(cAccGetINFO(ACC_ADDR_INFO2) == 0) led1::low();
-        printf("Blue LED is OFF\n");
+        printf("Blue LED is OFF\n\n");
         led2::low();
-        Thread::sleep(2000);
+        Thread::sleep(4000);
     }
     
 }
