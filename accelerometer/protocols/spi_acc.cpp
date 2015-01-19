@@ -25,6 +25,16 @@ char cSpiReceiveData();
 
 void vSpiInit(){
     
+    sck::mode(Mode::ALTERNATE);
+    sck::alternateFunction(5);
+    miso::mode(Mode::ALTERNATE);
+    miso::alternateFunction(5);
+    mosi::mode(Mode::ALTERNATE);
+    mosi::alternateFunction(5);
+    
+    cs::mode(Mode::OUTPUT);
+    cs::high();
+    
     if(SPI == SPI1){
         RCC->APB2ENR |= RCC_APB2ENR_SPI1EN;             /* Enable clock for SPI */
     }
@@ -37,25 +47,15 @@ void vSpiInit(){
     RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;                /* Enable clock on GPIOA */
     RCC->AHB1ENR |= RCC_AHB1ENR_GPIOEEN;                /* Enable clock on GPIOE */
     
-    SPI->CR1 &= ~(SPI_CR1_CPHA | SPI_CR1_CPOL);         /* Set the CPHA=0 and CPOL=0 */
-    SPI->CR1 |= SPI_CR1_MSTR;                           /* Set the master mode */
-    SPI->CR1 &= ~SPI_CR1_BIDIMODE;                    /* Enable Full Duplex */
-    SPI->CR1 &= ~SPI_CR1_RXONLY;                        /*Not receive only */
-    SPI->CR1 |= SPI_CR1_SSM | SPI_CR1_SSI;              /* Manage software slave select */
-    SPI->CR1 &= ~SPI_CR1_LSBFIRST;                       /* MSB first */
-    SPI->CR1 &= ~SPI_CR1_DFF;                          /* 8bit format */
-    SPI->CR1 |= SPI_CR1_BR_2 | SPI_CR1_BR_0;                            /* Set the baud pre multiplier to 64 */
-    SPI->CR2 &= ~SPI_CR2_FRF;                            /* Motorola mode */
-    
-    sck::mode(Mode::ALTERNATE);
-    sck::alternateFunction(5);
-    miso::mode(Mode::ALTERNATE);
-    miso::alternateFunction(5);
-    mosi::mode(Mode::ALTERNATE);
-    mosi::alternateFunction(5);
-    
-    cs::mode(Mode::OUTPUT);
-    cs::high();
+    SPI->CR1 &= ~(SPI_CR1_CPHA | SPI_CR1_CPOL);     /* Set the CPHA=0 and CPOL=0 */
+    SPI->CR1 |= SPI_CR1_MSTR;                       /* Set the master mode */
+    SPI->CR1 &= ~SPI_CR1_BIDIMODE;                  /* Enable Full Duplex */
+    SPI->CR1 &= ~SPI_CR1_RXONLY;                    /*Not receive only */
+    SPI->CR1 |= SPI_CR1_SSM | SPI_CR1_SSI;          /* Manage software slave select */
+    SPI->CR1 &= ~SPI_CR1_LSBFIRST;                  /* MSB first */
+    SPI->CR1 &= ~SPI_CR1_DFF;                       /* 8bit format */
+    SPI->CR1 |= SPI_CR1_BR_2 | SPI_CR1_BR_1;        /* Set the baud pre multiplier to 128 */
+    SPI->CR2 &= ~SPI_CR2_FRF;                       /* Motorola mode */
     
     ledSCK::mode(Mode::OUTPUT);
     ledSCK::low();
@@ -65,7 +65,7 @@ void vSpiInit(){
 
 void vSpiWriteByte(char addr, char data){
     char byte[] = {data};
-    printf("\n----------------\nWriting to reg:0x%02x byte:0x%02x\n", addr, byte[0]);
+    printf("\nWriting to reg:0x%02x byte:0x%02x\n", addr, byte[0]);
     iSpiWrite(addr, byte, 1);
 }
 
@@ -179,15 +179,17 @@ char cSpiReceiveData(){
 
 void vSpiStartTransmission(){
     ledSCK::high();
-    SPI->CR1 |= SPI_CR1_SPE;                        /* Enable the SPI */   
-    cs::low();                                     /* Enable slave select */
+    cs::low();                                      /* Enable slave select */
+    Thread::sleep(1);                               /* Let the mems to catch the cs */
+    SPI->CR1 |= SPI_CR1_SPE;                        /* Enable the SPI */
 }
 
 void vSpiEndTransmission(){
-    cs::high();                                      /* Disable slave select */
     //while(!(SPI->SR & SPI_SR_RXNE));
     while(!(SPI->SR & SPI_SR_TXE));                 /* Wait until TX buffer empty */
     while(SPI->SR & SPI_SR_BSY);                    /* Wait until SPI not busy */
     SPI->CR1 &= ~SPI_CR1_SPE;                       /* Disable the SPI */
+    Thread::sleep(1);                               /* Let the mems to catch the cs */
+    cs::high();                                      /* Disable slave select */
     ledSCK::low();
 }
