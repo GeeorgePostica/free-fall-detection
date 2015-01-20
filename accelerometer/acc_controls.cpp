@@ -26,7 +26,7 @@ void vAccInit(){
     vAccSoftReset();
     vSpiWriteByte(ACC_ADDR_CTRL_REG4, 0x67); // 100Hz data update rate, block data update disable, x/y/z enabled 
     vSpiWriteByte(ACC_ADDR_CTRL_REG5, 0x21); // Anti aliasing filter bandwidth 800Hz, 16G (very sensitive), no self-test, 4-wire interface
-    vSpiWriteByte(ACC_ADDR_CTRL_REG6, 0x10); // Enable auto increment
+    //vSpiWriteByte(ACC_ADDR_CTRL_REG6, 0x10); // Enable auto increment
     //vAccSoftReset();
 }
 

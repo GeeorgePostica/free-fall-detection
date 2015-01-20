@@ -24,11 +24,11 @@ int main()
         if(cAccGetINFO(ACC_ADDR_WHO_AM_I) == 0xff) led1::high();
         printf("Blue LED is ON\n\n");
         //else led1::low();
-        Thread::sleep(14000);
+        Thread::sleep(10000);
         if(cAccGetINFO(ACC_ADDR_INFO2) == 0) led1::low();
         printf("Blue LED is OFF\n\n");
         led2::low();
-        Thread::sleep(4000);
+        Thread::sleep(10000);
     }
     
 }

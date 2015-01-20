@@ -10,9 +10,6 @@ typedef Gpio<GPIOA_BASE,7> mosi;
 typedef Gpio<GPIOE_BASE,3> cs;
 
 typedef Gpio<GPIOD_BASE,13> ledSCK;   //JUST FOR TEST
-typedef Gpio<GPIOD_BASE,12> ledRX;   //JUST FOR TEST
-
-int iSpiNextSCKValue;
 
 /***************FUNCTION PROTOTYPES************/
 int iSpiWrite(char addr, char* data, int len);
@@ -25,6 +22,10 @@ char cSpiReceiveData();
 
 void vSpiInit(){
     
+    
+    RCC->APB2ENR |= RCC_APB2ENR_SPI1EN;                 /* Enable clock for SPI */
+    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;                /* Enable clock on GPIOA */
+    
     sck::mode(Mode::ALTERNATE);
     sck::alternateFunction(5);
     miso::mode(Mode::ALTERNATE);
@@ -35,37 +36,23 @@ void vSpiInit(){
     cs::mode(Mode::OUTPUT);
     cs::high();
     
-    if(SPI == SPI1){
-        RCC->APB2ENR |= RCC_APB2ENR_SPI1EN;             /* Enable clock for SPI */
-    }
-    else if(SPI == SPI2){
-        RCC->APB1ENR |= RCC_APB1ENR_SPI2EN;             /* Enable clock for SPI */
-    }
-    else {
-        RCC->APB1ENR |= RCC_APB1ENR_SPI3EN;             /* Enable clock for SPI */
-    }
-    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;                /* Enable clock on GPIOA */
-    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOEEN;                /* Enable clock on GPIOE */
-    
-    SPI->CR1 &= ~(SPI_CR1_CPHA | SPI_CR1_CPOL);     /* Set the CPHA=0 and CPOL=0 */
-    SPI->CR1 |= SPI_CR1_MSTR;                       /* Set the master mode */
-    SPI->CR1 &= ~SPI_CR1_BIDIMODE;                  /* Enable Full Duplex */
-    SPI->CR1 &= ~SPI_CR1_RXONLY;                    /*Not receive only */
-    SPI->CR1 |= SPI_CR1_SSM | SPI_CR1_SSI;          /* Manage software slave select */
-    SPI->CR1 &= ~SPI_CR1_LSBFIRST;                  /* MSB first */
-    SPI->CR1 &= ~SPI_CR1_DFF;                       /* 8bit format */
     SPI->CR1 |= SPI_CR1_BR_2 | SPI_CR1_BR_1;        /* Set the baud pre multiplier to 128 */
-    SPI->CR2 &= ~SPI_CR2_FRF;                       /* Motorola mode */
+    SPI->CR1 |= SPI_CR1_CPHA;                      /* Set the CPHA=1 */
+    SPI->CR1 |= SPI_CR1_CPOL;                      /* Set the CPOL=1 */
+    SPI->CR1 |= SPI_CR1_MSTR;                       /* Set the master mode */
+    SPI->CR1 |= SPI_CR1_SSM | SPI_CR1_SSI;          /* Manage software slave select */
+    //SPI->CR1 &= ~SPI_CR1_LSBFIRST;                  /* LSB first */
+    //SPI->CR1 &= ~SPI_CR1_DFF;                       /* 16bit format */
     
     ledSCK::mode(Mode::OUTPUT);
     ledSCK::low();
-    ledRX::mode(Mode::OUTPUT);
-    ledRX::low();
+    
+    printf("\n SPI init status:\n SPI->CR1: 0x%08x\n\n", (unsigned int)(SPI->CR1));
 }
 
 void vSpiWriteByte(char addr, char data){
     char byte[] = {data};
-    printf("\nWriting to reg:0x%02x byte:0x%02x\n", addr, byte[0]);
+    printf("\nWriting to reg:0x%02x byte:0x%02x", addr, byte[0]);
     iSpiWrite(addr, byte, 1);
 }
 
@@ -87,17 +74,19 @@ int iSpiWrite(char addr, char* data, int len){
     
     vSpiStartTransmission();
     
-    printf("sent byte: \t0x%02x\n", addr);
+    printf("\nsent byte: \t0x%02x\n", addr);
     
     //Sending the first byte
-    SPI->DR = addr;
+    vSpiSendData(addr);
     
     //Sending the (multiple) data bytes in SPI order
     int i = 0;
     while(i < len){
         vSpiSendData(data[i++]);    /* Send a byte of data */
+        cSpiReceiveData();          /* Dummy read */
     }
     
+    while((SPI->SR & SPI_SR_RXNE)) cSpiReceiveData();   //Clear the RXNE line               
     vSpiEndTransmission();
     return 1;
 }
@@ -146,9 +135,9 @@ int iSpiRead(char addr, char* data, int len){
     printf("\nsent byte: \t0x%02x\n", byte1);
     
     //Send the address
-    SPI->DR = byte1;
+    vSpiSendData(byte1);
     
-    vSpiSendData(0x00);
+    vSpiSendData(byte1);        //Dummy write
     byte1 = cSpiReceiveData();
     printf("received: \t0x%02x\t", byte1);
     
@@ -162,7 +151,7 @@ int iSpiRead(char addr, char* data, int len){
     }
     data[i] = cSpiReceiveData();  
     printf("0x%02x\n", data[i]);
-    
+    while(SPI->SR & SPI_SR_RXNE) cSpiReceiveData(); //Clear the RXNE line
     vSpiEndTransmission();
     return 1;
 }
@@ -179,17 +168,28 @@ char cSpiReceiveData(){
 
 void vSpiStartTransmission(){
     ledSCK::high();
+    printf("\n--------> sck start: \t%01x\t cs: %01x", sck::value(), cs::value());
     cs::low();                                      /* Enable slave select */
-    Thread::sleep(1);                               /* Let the mems to catch the cs */
+    usleep(SPI_ACC_CS_DELAY);                       /* Let the MEMS catch the cs */
+    while(cs::value());
     SPI->CR1 |= SPI_CR1_SPE;                        /* Enable the SPI */
+    usleep(SPI_ACC_CS_DELAY);                       /* Let the MEMS catch the cs */
+    while(!(SPI->CR1 & SPI_CR1_SPE));
+    printf(" -> %01x", cs::value());
+    //usleep(SPI_ACC_CS_DELAY);                       /* Let the MEMS catch the cs */
+    
 }
 
 void vSpiEndTransmission(){
-    //while(!(SPI->SR & SPI_SR_RXNE));
     while(!(SPI->SR & SPI_SR_TXE));                 /* Wait until TX buffer empty */
     while(SPI->SR & SPI_SR_BSY);                    /* Wait until SPI not busy */
     SPI->CR1 &= ~SPI_CR1_SPE;                       /* Disable the SPI */
-    Thread::sleep(1);                               /* Let the mems to catch the cs */
-    cs::high();                                      /* Disable slave select */
+    
+    usleep(SPI_ACC_CS_DELAY);                       /* Let the MEMS catch the cs */
+    printf("--------> sck end: \t%01x", sck::value());
+    printf("\t cs: %01x", cs::value());
+    cs::high();                                     /* Disable slave select */
+    while(!cs::value());
+    printf(" -> %01x\n\n", cs::value());
     ledSCK::low();
 }
