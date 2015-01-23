@@ -31,7 +31,7 @@ int main()
             ledGreen_OK::high();
         }
         printf("\nBlue LED is ON\n");
-        Thread::sleep(10000);
+        Thread::sleep(5000);
         if(cAccGetINFO(ACC_ADDR_INFO2) == 0){
             ledRed_Error::low();
         }
@@ -40,7 +40,7 @@ int main()
         }
         printf("\nBlue LED is OFF\n");
         ledBlue_Cycle::low();
-        Thread::sleep(10000);
+        Thread::sleep(5000);
     }
     
 }

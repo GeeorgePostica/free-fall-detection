@@ -19,10 +19,7 @@ SUBDIRS := $(KPATH)
 SRC :=                                  \
 main.cpp				\
 accelerometer/acc_controls.cpp		\
-accelerometer/protocols/spi_acc.cpp	\
-accelerometer/lib/stm32f4xx_spi.c	\
-accelerometer/lib/stm32f4xx_rcc.c	\
-accelerometer/lib/stm32f4xx_gpio.c
+accelerometer/protocols/spi_acc.cpp	
 
 ##
 ## List here additional static libraries with relative path
