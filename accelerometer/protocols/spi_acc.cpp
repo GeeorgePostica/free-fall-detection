@@ -4,6 +4,7 @@
 
 using namespace miosix;
 
+/* GPIO pins declarations */
 typedef Gpio<GPIOA_BASE,5> sck;
 typedef Gpio<GPIOA_BASE,6> miso;
 typedef Gpio<GPIOA_BASE,7> mosi;
@@ -19,10 +20,11 @@ char cSpiSendReceiveData(char data);
 void vSpiInit(){
     
     
-    RCC->APB2ENR |= RCC_APB2ENR_SPI1EN;                 /* Enable clock for SPI */
-    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;                /* Enable clock on GPIOA */
-    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOEEN;                /* Enable clock on GPIOA */
+    RCC->APB2ENR |= RCC_APB2ENR_SPI1EN;     /* Enable clock for SPI */
+    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;    /* Enable clock on GPIOA */
+    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOEEN;    /* Enable clock on GPIOA */
     
+    /* Set the alternate functions */
     sck::mode(Mode::ALTERNATE);
     sck::alternateFunction(5);
     miso::mode(Mode::ALTERNATE);
@@ -30,21 +32,23 @@ void vSpiInit(){
     mosi::mode(Mode::ALTERNATE);
     mosi::alternateFunction(5);
     
+    /* Set the slave select pin in output mode*/
     cs::mode(Mode::OUTPUT);
     cs::high();
     
     /* Basic SPI configuration for LIS3DSH accelerometer
      * MSB first; 8bit data format; CPHA=1 CPOL=1; */
-    SPI->CR1 |= SPI_CR1_BR_2;                       /* Set the baud pre multiplier to 32 (5.25MHz) */
-    SPI->CR1 |= SPI_CR1_CPHA;                       /* Set the CPHA=1 */
-    SPI->CR1 |= SPI_CR1_CPOL;                       /* Set the CPOL=1 */
-    SPI->CR1 |= SPI_CR1_MSTR;                       /* Set the master mode */
-    SPI->CR1 |= SPI_CR1_SSM | SPI_CR1_SSI;          /* Manage software slave select */
+    SPI->CR1 |= SPI_CR1_BR_2;   /* Set the baud pre-scaler to 32 (5.25MHz) */
+    SPI->CR1 |= SPI_CR1_CPHA;   /* Set the CPHA=1 */
+    SPI->CR1 |= SPI_CR1_CPOL;   /* Set the CPOL=1 */
+    SPI->CR1 |= SPI_CR1_MSTR;   /* Set the master mode */
+    SPI->CR1 |= SPI_CR1_SSM;    /* Set software slave select */
+    SPI->CR1 |= SPI_CR1_SSI;    /* Set internal slave select */
     
     
-    SPI->CR1 |= SPI_CR1_SPE;                        /* Enable the SPI */
+    SPI->CR1 |= SPI_CR1_SPE;    /* Enable the SPI */
     
-    printf("\n SPI init status:\n SPI->CR1: 0x%08x\n\n", (unsigned int)(SPI->CR1));
+    printf("\n SPI->CR1: 0x%08x\n\n", (unsigned int)(SPI->CR1));
 }
 
 void vSpiWriteByte(char addr, char data){
