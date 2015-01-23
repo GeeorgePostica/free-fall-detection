@@ -1,9 +1,8 @@
+#include <stdio.h>
 #include "acc_controls.h"
-#include "acc_registers.h"
 #include "protocols/spi_acc.h"
 
-ACC_StatusType xAccStatus;
-ACC_TypeDef ACC;            /* The data structure which represents the accelerometer */
+ACC_TypeDef ACC;        /* The data structure which represents the accelerometer */
 
 /************ FUNCTION PROTOTYPES ***********/
 short sAccGetAxis(char axisRegAddress);
@@ -11,164 +10,197 @@ void vAccSetFIFOMode(const char FIFOMode);
 void vAccBlockDataUpdate(int block);
 void vAccEnableAddrInc(int enable);
 void vAccSetSPIMode(const char SPIMode);
+
 /********************************************/
 
-void vAccInit(){
+
+void vAccInit() {
     vSpiInit();
-    
-    //vAccReboot();
-    //vSpiWriteByte(ACC_ADDR_CTRL_REG3, 0x67);
-    //vAccSetRate(ACC_ODR_800Hz);
-    //vAccSetSPIMode(ACC_SPI_MODE_4WIRE);
-    //vAccReboot();
-    cSpiReadByte(ACC_ADDR_WHO_AM_I);
-    vSpiWriteByte(ACC_ADDR_CTRL_REG3, 0xC9); // resetting the whole internal circuit (0xC9 for interrupts)
-    //vAccSoftReset();
-    vSpiWriteByte(ACC_ADDR_CTRL_REG4, 0x67); // 100Hz data update rate, block data update disable, x/y/z enabled 
-    vSpiWriteByte(ACC_ADDR_CTRL_REG5, 0x20); // Anti aliasing filter bandwidth 800Hz, 16G (very sensitive), no self-test, 4-wire interface
-    //vSpiWriteByte(ACC_ADDR_CTRL_REG6, 0x10); // Enable auto increment
-    //vAccSoftReset();
-    vAccReboot();
+    char who = cSpiReadByte(ACC_ADDR_WHO_AM_I);
+    if (who == ACC_WHO_AM_I) {
+        printf("\nInitializing LIS3DSH ...\n");
+        
+        /* Soft reset the accelerometer */
+        vAccSoftReset();
+        
+        /* Print the configuration */
+        printf("Configuring the accelerometer: \n");
+        printf("-> Data ready disabled, interrupts disabled\n");
+        printf("-> 800Hz ODR, x/y/z enabled\n");
+        printf("-> 800Hz AA, no self-test, 4-wire SPI\n");
+        printf("-> FIFO disabled, Auto-increment enabled\n");
+        printf("-> FIFO turned off\n");
+        
+        /* Setting the default values in ACC struct */
+        ACC.CTRL_REG3 = 0x00;  // Data ready disabled, interrupts disabled
+        ACC.CTRL_REG4 = 0x87;  // 800Hz ODR, x/y/z enabled
+        ACC.CTRL_REG5 = 0x00;  // 800Hz AA, no self-test, 4-wire SPI
+        ACC.CTRL_REG6 = 0x10;  // FIFO disabled, Auto-increment enabled
+        ACC.FIFO_CTRL = 0x00;  // FIFO turned off
+        
+        /* Writing the registers of accelerometer */
+        vSpiWriteByte(ACC_ADDR_CTRL_REG3, ACC.CTRL_REG3);
+        vSpiWriteByte(ACC_ADDR_CTRL_REG4, ACC.CTRL_REG4);
+        vSpiWriteByte(ACC_ADDR_CTRL_REG5, ACC.CTRL_REG5);
+        vSpiWriteByte(ACC_ADDR_CTRL_REG6, ACC.CTRL_REG6);
+        vSpiWriteByte(ACC_ADDR_FIFO_CTRL, ACC.FIFO_CTRL);
+        
+        /* Set the full scale */
+        vAccSetScale(ACC_CTRL_REG5_FSCALE_2G);
+        
+        printf(" ... initialization done\n\n");
+    }
+    else if(who != 00){
+        printf("\nCould not identify LIS3DSH !!\n");
+    }
+    else{
+        printf("\nCould not connect to LIS3DSH !!\n");
+    }
 }
 
-void vAccReboot(){
-    ACC.CTRL_REG6 |= 1 << 7;
-    vSpiWriteByte(ACC_ADDR_CTRL_REG6, ACC.CTRL_REG6);
+void vAccReboot() {
+    printf("\n\nRebooting accelerometer...\n");
+    vSpiWriteByte(ACC_ADDR_CTRL_REG6, ACC.CTRL_REG6 | (1<<7));
+    vAccInit();
 }
 
-void vAccSoftReset(){
-    ACC.CTRL_REG3 |= 1;
-    vSpiWriteByte(ACC_ADDR_CTRL_REG3, ACC.CTRL_REG3);
+void vAccSoftReset() {
+    vSpiWriteByte(ACC_ADDR_CTRL_REG3, ACC.CTRL_REG3 | 1);
 }
 
-float fAccGetX(){
-    return sAccGetAxis(ACC_ADDR_OUT_X_L) * xAccStatus.scale;
+float fAccGetX() {
+    return sAccGetAxis(ACC_ADDR_OUT_X_L) * ACC.scale;
 }
 
-float fAccGetY(){
-    return sAccGetAxis(ACC_ADDR_OUT_Y_L) * xAccStatus.scale;
+float fAccGetY() {
+    return sAccGetAxis(ACC_ADDR_OUT_Y_L) * ACC.scale;
 }
 
-float fAccGetZ(){
-    return sAccGetAxis(ACC_ADDR_OUT_Z_L) * xAccStatus.scale;
+float fAccGetZ() {
+    return sAccGetAxis(ACC_ADDR_OUT_Z_L) * ACC.scale;
 }
 
-short sAccGetAxis(char axisRegAddress){
+short sAccGetAxis(char axisRegAddress) {
     short res;
-    vAccBlockDataUpdate(1);
+    //vAccBlockDataUpdate(1);
     res = sSpiReadShort(axisRegAddress);
-    vAccBlockDataUpdate(0);
+    //vAccBlockDataUpdate(0);
     return res;
 }
 
-float* pfAccGetXYZ(float xyz[]){
+float* pfAccGetXYZ(float xyz[]) {
     short values[3];
-    vAccBlockDataUpdate(1);
+    //vAccBlockDataUpdate(1);
     vSpiReadArrayShort(ACC_ADDR_OUT_X_L, values, 3);
-    vAccBlockDataUpdate(0);
-    xyz[0] = values[2] * xAccStatus.scale;    /*Order reversed due to SPI protocol*/
-    xyz[1] = values[1] * xAccStatus.scale;
-    xyz[2] = values[0] * xAccStatus.scale;
+    //vAccBlockDataUpdate(0);
+    /*Order reversed due to SPI protocol*/
+    xyz[0] = values[2] * ACC.scale;
+    xyz[1] = values[1] * ACC.scale;
+    xyz[2] = values[0] * ACC.scale;
     return xyz;
 }
 
-void vAccSetScale(const char scale){
-    ACC.CTRL_REG5 = (ACC.CTRL_REG5 & ~ACC_FSCALE_MASK) 
-                   | (scale & ACC_FSCALE_MASK);
-    switch(scale){
-        case ACC_CTRL_REG5_FSCALE_4G:     xAccStatus.scale = 1/(ACC_SCALE_4G*ACC_G);
-                                          break;
-        case ACC_CTRL_REG5_FSCALE_6G:     xAccStatus.scale = 1/(ACC_SCALE_6G*ACC_G);
-                                          break;
-        case ACC_CTRL_REG5_FSCALE_8G:     xAccStatus.scale = 1/(ACC_SCALE_8G*ACC_G);
-                                          break;
-        case ACC_CTRL_REG5_FSCALE_16G:    xAccStatus.scale = 1/(ACC_SCALE_16G*ACC_G);
-                                          break;
-        default:                xAccStatus.scale = 1/(ACC_SCALE_2G*ACC_G);
-                                break;
+void vAccSetScale(const char scale) {
+    ACC.CTRL_REG5 = (ACC.CTRL_REG5 & ~ACC_FSCALE_MASK)
+            | (scale & ACC_FSCALE_MASK);
+    switch (scale) {
+        case ACC_CTRL_REG5_FSCALE_4G: 
+            ACC.scale = ACC_SCALE_4G;
+            printf("-> FScale = 4G\n");
+            break;
+        case ACC_CTRL_REG5_FSCALE_6G: 
+            ACC.scale = ACC_SCALE_6G;
+            printf("-> FScale = 6G\n");
+            break;
+        case ACC_CTRL_REG5_FSCALE_8G: 
+            ACC.scale = ACC_SCALE_8G;
+            printf("-> FScale = 8G\n");
+            break;
+        case ACC_CTRL_REG5_FSCALE_16G: 
+            ACC.scale = ACC_SCALE_16G;
+            printf("-> FScale = 16G\n");
+            break;
+        default: 
+            ACC.scale = ACC_SCALE_2G;
+            printf("-> FScale = 2G\n");
+            break;
     }
     vSpiWriteByte(ACC_ADDR_CTRL_REG5, ACC.CTRL_REG5);
 }
 
-void vAccSetRate(const char rate){
-    ACC.CTRL_REG4 = (ACC.CTRL_REG4 & ~ACC_ODR_MASK) 
-                   | (rate & ACC_ODR_MASK);
+void vAccSetRate(const char rate) {
+    ACC.CTRL_REG4 = (ACC.CTRL_REG4 & ~ACC_ODR_MASK)
+            | (rate & ACC_ODR_MASK);
     vSpiWriteByte(ACC_ADDR_CTRL_REG4, ACC.CTRL_REG4);
 }
 
-void vAccSelfTest(const char SelfTest){
-    if((SelfTest & ACC_CTRL_REG5_SELF_TEST_PROHIBITED) != ACC_CTRL_REG5_SELF_TEST_PROHIBITED){ //Avoid not allowed state
-        ACC.CTRL_REG5 = (ACC.CTRL_REG5 & ~ACC_SELF_TEST_MASK) 
-                       | (SelfTest & ACC_SELF_TEST_MASK);
+void vAccSelfTest(const char SelfTest) {
+    if ((SelfTest & ACC_CTRL_REG5_SELF_TEST_PROHIBITED) != ACC_CTRL_REG5_SELF_TEST_PROHIBITED) { //Avoid not allowed state
+        ACC.CTRL_REG5 = (ACC.CTRL_REG5 & ~ACC_SELF_TEST_MASK)
+                | (SelfTest & ACC_SELF_TEST_MASK);
     }
     vSpiWriteByte(ACC_ADDR_CTRL_REG5, ACC.CTRL_REG5);
     //TODO: Need to finish this function
 }
 
-void vAccSetFIFOMode(const char FIFOMode){
-    ACC.FIFO_CTRL = (ACC.FIFO_CTRL & ~ACC_FIFO_MODE_MASK) 
-                   | (FIFOMode & ACC_FIFO_MODE_MASK);
+void vAccSetFIFOMode(const char FIFOMode) {
+    ACC.FIFO_CTRL = (ACC.FIFO_CTRL & ~ACC_FIFO_MODE_MASK)
+            | (FIFOMode & ACC_FIFO_MODE_MASK);
     vSpiWriteByte(ACC_ADDR_FIFO_CTRL, ACC.FIFO_CTRL);
 }
 
-void vAccSetSPIMode(const char SPIMode){
+void vAccSetSPIMode(const char SPIMode) {
     ACC.CTRL_REG5 = (ACC.CTRL_REG5 & ~(ACC_SPI_MODE_3WIRE))
-                   | (SPIMode & ACC_SPI_MODE_3WIRE);
+            | (SPIMode & ACC_SPI_MODE_3WIRE);
     vSpiWriteByte(ACC_ADDR_CTRL_REG5, ACC.CTRL_REG5);
 }
 
-void vAccBlockDataUpdate(int block){
-    block? ACC.CTRL_REG4 |= 1 << 3 : ACC.CTRL_REG4 &= ~(1 << 3);
+void vAccBlockDataUpdate(int block) {
+    block ? ACC.CTRL_REG4 |= 1 << 3 : ACC.CTRL_REG4 &= ~(1 << 3);
     vSpiWriteByte(ACC_ADDR_CTRL_REG4, ACC.CTRL_REG4);
 }
 
-void vAccEnableAxis(const char Axis, int enable){
+void vAccEnableAxis(const char Axis, int enable) {
     enable ? ACC.CTRL_REG4 |= (Axis & ACC_AXIS_MASK)
             : ACC.CTRL_REG4 &= ~(Axis & ACC_AXIS_MASK);
     vSpiWriteByte(ACC_ADDR_CTRL_REG4, ACC.CTRL_REG4);
 }
 
-void vAccEnableFIFO(int enable){
+void vAccEnableFIFO(int enable) {
     enable ? ACC.CTRL_REG6 |= 1 << 6 : ACC.CTRL_REG6 &= ~(1 << 6);
     vSpiWriteByte(ACC_ADDR_CTRL_REG6, ACC.CTRL_REG6);
 }
 
-void vAccEnableAddrInc(int enable){
+void vAccEnableAddrInc(int enable) {
     enable ? ACC.CTRL_REG6 |= 1 << 4 : ACC.CTRL_REG6 &= ~(1 << 4);
     vSpiWriteByte(ACC_ADDR_CTRL_REG6, ACC.CTRL_REG6);
 }
 
-int iAccIsDataOverrun(){
-    ACC.STATUS = cSpiReadByte(ACC_ADDR_STATUS);
-    return (int)(ACC.STATUS & (1 << 7));
+int iAccIsDataOverrun() {
+    return (int) (cSpiReadByte(ACC_ADDR_STATUS) & (1 << 7));
 }
 
-int iAccIsDataOverrun(const char Axis){
-    ACC.STATUS = cSpiReadByte(ACC_ADDR_STATUS);
-    return (int)(ACC.STATUS & ((Axis & ACC_AXIS_MASK) << 4));
+int iAccIsDataOverrun(const char Axis) {
+    return (int) (cSpiReadByte(ACC_ADDR_STATUS) & ((Axis & ACC_AXIS_MASK) << 4));
 }
 
-int iAccIsDataReady(){
-    ACC.STATUS = cSpiReadByte(ACC_ADDR_STATUS);
-    return (int)(ACC.STATUS & (1 << 3));
+int iAccIsDataReady() {
+    return (int) (cSpiReadByte(ACC_ADDR_STATUS) & (1 << 3));
 }
 
-int iAccIsDataReady(const char Axis){
-    ACC.STATUS = cSpiReadByte(ACC_ADDR_STATUS);
-    return (int)(ACC.STATUS & (Axis & ACC_AXIS_MASK));
+int iAccIsDataReady(const char Axis) {
+    return (int) (cSpiReadByte(ACC_ADDR_STATUS) & (Axis & ACC_AXIS_MASK));
 }
 
-int iAccIsFIFOFilled(){
-    ACC.FIFO_SRC = cSpiReadByte(ACC_ADDR_FIFO_SRC);
-    return (int)(ACC.FIFO_SRC & (1 << 6));
+int iAccIsFIFOFilled() {
+    return (int) (cSpiReadByte(ACC_ADDR_FIFO_SRC) & (1 << 6));
 }
 
-int iAccIsFIFOEmpty(){
-    ACC.FIFO_SRC = cSpiReadByte(ACC_ADDR_FIFO_SRC);
-    return (int)(ACC.FIFO_SRC & (1 << 5));
+int iAccIsFIFOEmpty() {
+    return (int) (cSpiReadByte(ACC_ADDR_FIFO_SRC) & (1 << 5));
 }
 
-char cAccGetINFO(char infoReg){
+char cAccGetINFO(char infoReg) {
     return cSpiReadByte(infoReg);
 }
 

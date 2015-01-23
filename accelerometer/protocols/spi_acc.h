@@ -8,15 +8,15 @@
 #ifndef SPI_ACC_H
 #define	SPI_ACC_H
 
-#define SPI_ACC_FREQ        2000        // in Hz Yet to be determined
-#define SPI_ACC_SLEEP_us    (int)(1000000/SPI_ACC_FREQ/2)
-
 #define SPI_ACC_RW          0x80    /* 1: Read (OR)  0: Write (AND NOT) */
 #define SPI_ACC_MS          0x40    /* 1: Master (OR) 0: Slave (AND NOT) */
 
 #define SPI SPI1                    /* Set the SPI1 for SPI mems */
 
-#define SPI_ACC_CS_DELAY    500     /* CS delay before SPI start in us */
+#define SPI_ACC_CS_DELAY    10      /* CS delay before SPI start in us */
+#define SPI_ACC_WRITE_DELAY 50      /* MEMS write delay */
+
+//#define SPI_ACC_DEBUG       /* Comment to disable transmission prints */
 
 void vSpiInit();
 void vSpiWriteByte(char addr, char data);
