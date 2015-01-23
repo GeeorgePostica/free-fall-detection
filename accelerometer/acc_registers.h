@@ -162,6 +162,10 @@
 #define ACC_ADDR_OUT_Z_L    0x2C    /* ADDRESS: 0x2C; READ-ONLY; LSB Z-axis output register. */
 #define ACC_ADDR_OUT_Z_H    0x2D    /* ADDRESS: 0x2D; READ-ONLY; MSB Z-axis output register. */
 
+#define ACC_ADDR_OFF_X      0x10    /* ADDRESS: 0x10; Offset for X-axis */
+#define ACC_ADDR_OFF_Y      0x11    /* ADDRESS: 0x11; Offset for Y-axis */
+#define ACC_ADDR_OFF_Z      0x12    /* ADDRESS: 0x12; Offset for Z-axis */
+
 /*******************************************************************************/
 
 

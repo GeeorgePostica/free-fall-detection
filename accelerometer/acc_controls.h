@@ -10,14 +10,21 @@
 
 #include "acc_registers.h"
 
+/* Full Scale multipliers */
 #define ACC_G           9.8
 #define ACC_S_RATIO     1.0/32768.0
 #define ACC_SCALE_2G    2.0 * ACC_S_RATIO * ACC_G
 #define ACC_SCALE_4G    4.0 * ACC_S_RATIO * ACC_G
 #define ACC_SCALE_6G    6.0 * ACC_S_RATIO * ACC_G
 #define ACC_SCALE_8G    8.0 * ACC_S_RATIO * ACC_G
-#define ACC_SCALE_16G   16.0 * ACC_S_RATIO * ACC_G
+#define ACC_SCALE_16G   24.0 * ACC_S_RATIO * ACC_G  //It seems like it is a bug
 
+/* Offset values: vary on each accelerometer*/
+#define ACC_OFFSET_X    0x0C
+#define ACC_OFFSET_Y    0x04
+#define ACC_OFFSET_Z    0x0C
+
+/* LISD3SH accelerometer data structure to maintain all data in one place*/
 typedef struct{
     char CTRL_REG4;          /* |bit|def | name | info
                               * -----------------------------------------------
@@ -76,9 +83,11 @@ typedef struct{
                               *      then FIFO mode    */
     
     float scale;             /* Full scale multiplier */
+    char offset;             /* Offset multiplier */
     
 } ACC_TypeDef;
 
+/* Accelerometer function prototypes */
 void vAccInit();
 float fAccGetX();       /* Get the acceleration along X-axis. [m/s^2] */
 float fAccGetY();       /* Get the acceleration along Y-axis. [m/s^2] */
@@ -97,6 +106,10 @@ int iAccIsDataReady();
 int iAccIsDataReady(const char Axis);
 int iAccIsFIFOFilled();
 int iAccIsFIFOEmpty();
+
+void vAccSetOffsetX(char offset);
+void vAccSetOffsetY(char offset);
+void vAccSetOffsetZ(char offset);
 
 char cAccGetINFO(char infoReg);
 

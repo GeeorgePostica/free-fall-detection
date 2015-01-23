@@ -48,6 +48,12 @@ void vAccInit() {
         /* Set the full scale */
         vAccSetScale(ACC_CTRL_REG5_FSCALE_2G);
         
+        
+        /* Set offsets */
+        //vAccSetOffsetX(ACC_OFFSET_X);
+        //vAccSetOffsetY(ACC_OFFSET_Y);
+        vAccSetOffsetZ(ACC_OFFSET_Z);
+        
         printf(" ... initialization done\n\n");
     }
     else if(who != 00){
@@ -90,7 +96,7 @@ short sAccGetAxis(char axisRegAddress) {
 
 float* pfAccGetXYZ(float xyz[]) {
     short values[3];
-    //vAccBlockDataUpdate(1);
+    vAccBlockDataUpdate(1);
     vSpiReadArrayShort(ACC_ADDR_OUT_X_L, values, 3);
     //vAccBlockDataUpdate(0);
     /*Order reversed due to SPI protocol*/
@@ -106,26 +112,43 @@ void vAccSetScale(const char scale) {
     switch (scale) {
         case ACC_CTRL_REG5_FSCALE_4G: 
             ACC.scale = ACC_SCALE_4G;
+            ACC.offset = 2;
             printf("-> FScale = 4G\n");
             break;
         case ACC_CTRL_REG5_FSCALE_6G: 
             ACC.scale = ACC_SCALE_6G;
+            ACC.offset = 3;
             printf("-> FScale = 6G\n");
             break;
         case ACC_CTRL_REG5_FSCALE_8G: 
             ACC.scale = ACC_SCALE_8G;
+            ACC.offset = 4;
             printf("-> FScale = 8G\n");
             break;
         case ACC_CTRL_REG5_FSCALE_16G: 
             ACC.scale = ACC_SCALE_16G;
+            ACC.offset = 16;
             printf("-> FScale = 16G\n");
             break;
         default: 
             ACC.scale = ACC_SCALE_2G;
+            ACC.offset = 1;
             printf("-> FScale = 2G\n");
             break;
     }
     vSpiWriteByte(ACC_ADDR_CTRL_REG5, ACC.CTRL_REG5);
+}
+
+void vAccSetOffsetX(char offset){
+    vSpiWriteByte(ACC_ADDR_OFF_X, offset/ACC.offset);
+}
+
+void vAccSetOffsetY(char offset){
+    vSpiWriteByte(ACC_ADDR_OFF_Y, offset/ACC.offset);
+}
+
+void vAccSetOffsetZ(char offset){
+    vSpiWriteByte(ACC_ADDR_OFF_Z, offset/ACC.offset);
 }
 
 void vAccSetRate(const char rate) {
@@ -135,7 +158,8 @@ void vAccSetRate(const char rate) {
 }
 
 void vAccSelfTest(const char SelfTest) {
-    if ((SelfTest & ACC_CTRL_REG5_SELF_TEST_PROHIBITED) != ACC_CTRL_REG5_SELF_TEST_PROHIBITED) { //Avoid not allowed state
+    if ((SelfTest & ACC_CTRL_REG5_SELF_TEST_PROHIBITED) 
+            != ACC_CTRL_REG5_SELF_TEST_PROHIBITED) { //Avoid not allowed state
         ACC.CTRL_REG5 = (ACC.CTRL_REG5 & ~ACC_SELF_TEST_MASK)
                 | (SelfTest & ACC_SELF_TEST_MASK);
     }
