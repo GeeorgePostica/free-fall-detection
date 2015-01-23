@@ -22,23 +22,16 @@ int main() {
     } else {
         ledGreen_OK::high();
     }
-    float x,y,z;
     float xyz[3];
     for (;;) {
         ledBlue_Cycle::high();
-        /*x = fAccGetX(); y = fAccGetY(); z = fAccGetZ();
-        printf("(%.3f\t%.3f\t%.3f)\t Mag: %.3f\n", 
-                x, y, z, sqrt(x*x + y*y + z*z));*/
-        vAccGetAverageXYZ(xyz, 10);
+        vAccGetAverageXYZ(xyz, 30);
         printf("AVG (%.3f\t%.3f\t%.3f)\t Mag: %.3f\n", 
                 xyz[0], xyz[1], xyz[2], 
                 sqrt(xyz[0]*xyz[0] + xyz[1]*xyz[1] + xyz[2]*xyz[2]));
         
         Thread::sleep(1000);
-        /*x = fAccGetX(); y = fAccGetY(); z = fAccGetZ();
-        printf("(%.3f\t%.3f\t%.3f)\t Mag: %.3f\n", 
-                x, y, z, sqrt(x*x + y*y + z*z));*/
-        vAccGetAverageXYZ(xyz, 10);
+        vAccGetAverageXYZ(xyz, 30);
         printf("AVG (%.3f\t%.3f\t%.3f)\t Mag: %.3f\n", 
                 xyz[0], xyz[1], xyz[2], 
                 sqrt(xyz[0]*xyz[0] + xyz[1]*xyz[1] + xyz[2]*xyz[2]));

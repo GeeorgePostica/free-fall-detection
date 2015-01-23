@@ -110,11 +110,15 @@ void vAccGetAverageXYZ(float xyz[], int samples){
         return;
     }
     short values[3];
-    for(int i=0; i<samples; i++){
-       vSpiReadArrayShort(ACC_ADDR_OUT_X_L, values, 3);
-       xyz[0] += (float)values[0];
-       xyz[1] += (float)values[1];
-       xyz[2] += (float)values[2];
+    int i=0;
+    while(i < samples){
+        if(iAccIsDataReady()) {
+            vSpiReadArrayShort(ACC_ADDR_OUT_X_L, values, 3);
+            xyz[0] += (float) values[0];
+            xyz[1] += (float) values[1];
+            xyz[2] += (float) values[2];
+            i++;
+        }
     }
     xyz[0] *= ACC.scale / (float)samples;
     xyz[1] *= ACC.scale / (float)samples;
