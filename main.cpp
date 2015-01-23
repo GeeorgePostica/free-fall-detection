@@ -16,8 +16,6 @@ int main() {
 
     ledRed_Error::low();
     vAccInit();
-    //vAccSetRate(ACC_ODR_50Hz);
-    //vAccSoftReset();
     delayMs(5000);
     if (cAccGetINFO(ACC_ADDR_WHO_AM_I) != 0x3f) {
         ledRed_Error::high();
@@ -25,15 +23,25 @@ int main() {
         ledGreen_OK::high();
     }
     float x,y,z;
+    float xyz[3];
     for (;;) {
         ledBlue_Cycle::high();
-        x = fAccGetX(); y = fAccGetY(); z = fAccGetZ();
+        /*x = fAccGetX(); y = fAccGetY(); z = fAccGetZ();
         printf("(%.3f\t%.3f\t%.3f)\t Mag: %.3f\n", 
-                x, y, z, sqrt(x*x + y*y + z*z));
+                x, y, z, sqrt(x*x + y*y + z*z));*/
+        vAccGetAverageXYZ(xyz, 10);
+        printf("AVG (%.3f\t%.3f\t%.3f)\t Mag: %.3f\n", 
+                xyz[0], xyz[1], xyz[2], 
+                sqrt(xyz[0]*xyz[0] + xyz[1]*xyz[1] + xyz[2]*xyz[2]));
+        
         Thread::sleep(1000);
-        x = fAccGetX(); y = fAccGetY(); z = fAccGetZ();
+        /*x = fAccGetX(); y = fAccGetY(); z = fAccGetZ();
         printf("(%.3f\t%.3f\t%.3f)\t Mag: %.3f\n", 
-                x, y, z, sqrt(x*x + y*y + z*z));
+                x, y, z, sqrt(x*x + y*y + z*z));*/
+        vAccGetAverageXYZ(xyz, 10);
+        printf("AVG (%.3f\t%.3f\t%.3f)\t Mag: %.3f\n", 
+                xyz[0], xyz[1], xyz[2], 
+                sqrt(xyz[0]*xyz[0] + xyz[1]*xyz[1] + xyz[2]*xyz[2]));
         ledBlue_Cycle::low();
         Thread::sleep(1000);
     }

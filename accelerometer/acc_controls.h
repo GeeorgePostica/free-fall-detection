@@ -92,7 +92,8 @@ void vAccInit();
 float fAccGetX();       /* Get the acceleration along X-axis. [m/s^2] */
 float fAccGetY();       /* Get the acceleration along Y-axis. [m/s^2] */
 float fAccGetZ();       /* Get the acceleration along Z-axis. [m/s^2] */
-float* pfAccGetXYZ();   /* Get the acceleration along all axis. [m/s^2] */
+void vAccGetXYZ(float xyz[]);   /* Get the acceleration along all axis. [m/s^2] */
+void vAccGetAverageXYZ(float xyz[], int samples); /* Get the averaged values */
 void vAccSoftReset();
 void vAccReboot();
 void vAccSetScale(const char scale);

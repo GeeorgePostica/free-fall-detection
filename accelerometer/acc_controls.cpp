@@ -94,16 +94,31 @@ short sAccGetAxis(char axisRegAddress) {
     return res;
 }
 
-float* pfAccGetXYZ(float xyz[]) {
+void vAccGetXYZ(float xyz[]) {
     short values[3];
     vAccBlockDataUpdate(1);
     vSpiReadArrayShort(ACC_ADDR_OUT_X_L, values, 3);
     //vAccBlockDataUpdate(0);
     /*Order reversed due to SPI protocol*/
-    xyz[0] = values[2] * ACC.scale;
+    xyz[0] = values[0] * ACC.scale;
     xyz[1] = values[1] * ACC.scale;
-    xyz[2] = values[0] * ACC.scale;
-    return xyz;
+    xyz[2] = values[2] * ACC.scale;
+}
+
+void vAccGetAverageXYZ(float xyz[], int samples){
+    if(samples < 1){
+        return;
+    }
+    short values[3];
+    for(int i=0; i<samples; i++){
+       vSpiReadArrayShort(ACC_ADDR_OUT_X_L, values, 3);
+       xyz[0] += (float)values[0];
+       xyz[1] += (float)values[1];
+       xyz[2] += (float)values[2];
+    }
+    xyz[0] *= ACC.scale / (float)samples;
+    xyz[1] *= ACC.scale / (float)samples;
+    xyz[2] *= ACC.scale / (float)samples;
 }
 
 void vAccSetScale(const char scale) {
