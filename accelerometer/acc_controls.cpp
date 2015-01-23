@@ -21,13 +21,14 @@ void vAccInit(){
     //vAccSetRate(ACC_ODR_800Hz);
     //vAccSetSPIMode(ACC_SPI_MODE_4WIRE);
     //vAccReboot();
-    cSpiReadByte(ACC_ADDR_STATUS);
-    //vSpiWriteByte(ACC_ADDR_CTRL_REG3, 0xC9); // resetting the whole internal circuit (0xC9 for interrupts)
-    vAccSoftReset();
+    cSpiReadByte(ACC_ADDR_WHO_AM_I);
+    vSpiWriteByte(ACC_ADDR_CTRL_REG3, 0xC9); // resetting the whole internal circuit (0xC9 for interrupts)
+    //vAccSoftReset();
     vSpiWriteByte(ACC_ADDR_CTRL_REG4, 0x67); // 100Hz data update rate, block data update disable, x/y/z enabled 
-    vSpiWriteByte(ACC_ADDR_CTRL_REG5, 0x21); // Anti aliasing filter bandwidth 800Hz, 16G (very sensitive), no self-test, 4-wire interface
+    vSpiWriteByte(ACC_ADDR_CTRL_REG5, 0x20); // Anti aliasing filter bandwidth 800Hz, 16G (very sensitive), no self-test, 4-wire interface
     //vSpiWriteByte(ACC_ADDR_CTRL_REG6, 0x10); // Enable auto increment
     //vAccSoftReset();
+    vAccReboot();
 }
 
 void vAccReboot(){

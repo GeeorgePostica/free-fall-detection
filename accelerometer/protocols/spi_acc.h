@@ -17,7 +17,7 @@
 #define SPI SPI1
 #define SPI_BUFFER_RESET    0
 
-#define SPI_ACC_CS_DELAY    1000     /* CS delay before SPI start in us */
+#define SPI_ACC_CS_DELAY    30000     /* CS delay before SPI start in us */
 
 void vSpiInit();
 void vSpiWriteByte(char addr, char data);
