@@ -4,6 +4,11 @@
 
 using namespace miosix;
 
+/*********** FUNCTION PROTOTYPES *************/
+void *threadRun(void* args);
+void switchAlert(void(*nextAlert)());
+/*********************************************/
+
 typedef Gpio<GPIOD_BASE, 14> ledRed;
 typedef Gpio<GPIOD_BASE, 15> ledBlue;
 typedef Gpio<GPIOD_BASE, 12> ledGreen;
@@ -12,11 +17,21 @@ typedef Gpio<GPIOD_BASE, 13> ledYellow;
 /* Thread running the alerts */
 pthread_t alertThread;
 
-/* Used to keep the thread running */
+/* Needed to change execution function */
 int running;
+
+/* Used to keep the thread running */
+int alive;
+
+/* Pointer to function executing by the thread */
+void (*lightUp)();
+
+/* Pointer to function to be executed by the thread */
+void (*nextLights)();
 
 void vAlertInit(){
     running = 0;
+    alive = 0;
     ledRed::mode(Mode::OUTPUT);
     ledBlue::mode(Mode::OUTPUT);
     ledGreen::mode(Mode::OUTPUT);
@@ -38,14 +53,15 @@ void vToggleLeds() {
 }
 
 void vAlertStop() {
-    if (running) {
+    if (alive) {
+        alive = 0;
         running = 0;
         pthread_join(alertThread, NULL);
     }
     vSetLeds(0, 0, 0, 0);
 }
 
-void *AlertLoading(void *args) {
+void AlertLoading() {
     while (running) {
         delayMs(ALERT_DELAY_LOADING/2);
         ledYellow::high();
@@ -71,28 +87,25 @@ void *AlertLoading(void *args) {
         delayMs(ALERT_DELAY_LOADING);
         ledGreen::low();
     }
-    return NULL;
 }
 
-void *AlertFalling(void *args) {
+void AlertFalling() {
     vSetLeds(1, 0, 1, 0);
     while (running) {
         delayMs(ALERT_DELAY_FALLING);
         vToggleLeds();
     }
-    return NULL;
 }
 
-void *AlertCrash(void *args) {
+void AlertCrash() {
     vSetLeds(1, 1, 1, 1);
     while (running) {
         delayMs(ALERT_DELAY_CRASH);
         vToggleLeds();
     }
-    return NULL;
 }
 
-void *AlertError(void *args) {
+void AlertError() {
     vSetLeds(0, 1, 0, 0);
     while (running) {
         delayMs(ALERT_DELAY_ERROR);
@@ -101,28 +114,51 @@ void *AlertError(void *args) {
         delayMs(ALERT_DELAY_ERROR);
         ledRed::high();
     }
-    return NULL;
+}
+
+void nothing(){
+    vSetLeds(0,0,0,1);
+    while(running){
+        delayMs(5);
+    }
 }
 
 void vAlertShow(Alert::Alert_ alert) {
-    vAlertStop();
-    running = 1;
+    if(!alive){
+        pthread_create(&alertThread, NULL, threadRun, NULL);
+    }
     switch (alert) {
         case Alert::Crash:
-            pthread_create(&alertThread, NULL, AlertCrash, NULL);
+            switchAlert(AlertCrash);
             break;
         case Alert::Error:
-            pthread_create(&alertThread, NULL, AlertError, NULL);
+            switchAlert(AlertError);
             break;
         case Alert::Loading:
-            pthread_create(&alertThread, NULL, AlertLoading, NULL);
+            switchAlert(AlertLoading);
             break;
         case Alert::Falling:
-            pthread_create(&alertThread, NULL, AlertFalling, NULL);
+            switchAlert(AlertFalling);
             break;
         default:
-            vSetLeds(0,0,0,1);
-            running = 0;
+            switchAlert(nothing);
             break;
     }
+}
+
+void switchAlert(void (*nextAlert)()){
+    nextLights = nextAlert;
+    running = 0;
+}
+
+void *threadRun(void *args){
+    lightUp = nothing;
+    running = 1;
+    alive = 1;
+    while(alive){
+        lightUp = nextLights;
+        running = 1;
+        lightUp();
+    }
+    return NULL;
 }
