@@ -19,7 +19,8 @@ SUBDIRS := $(KPATH)
 SRC :=                                  \
 main.cpp				\
 accelerometer/acc_controls.cpp		\
-accelerometer/protocols/spi_acc.cpp	
+accelerometer/protocols/spi_acc.cpp	\
+accelerometer/led_alert.cpp
 
 ##
 ## List here additional static libraries with relative path
