@@ -18,8 +18,9 @@ SUBDIRS := $(KPATH)
 ##
 SRC :=                                  \
 main.cpp				\
-accelerometer/acc_controls.cpp		\
-accelerometer/protocols/spi_acc.cpp	\
+accelerometer/accelerometer.cpp		\
+accelerometer/protocols/spi.cpp		\
+accelerometer/protocols/spi1_stm32f4xx.cpp \
 accelerometer/led_alert.cpp
 
 ##

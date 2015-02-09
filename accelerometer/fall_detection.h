@@ -24,6 +24,9 @@
 /** Default HW Timer for free fall counting */
 #define FD_TIMER            TIM2
 
+/** Timer tick divider to get us */
+#define FD_TICK_TO_us       168
+
 /** Configures and starts a new thread which checks for a fall detection
  * and when a fall is detected a specified callback function of type void
  *  is invoked */
