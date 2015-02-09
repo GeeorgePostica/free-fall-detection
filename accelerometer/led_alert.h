@@ -8,11 +8,7 @@
 #ifndef LED_ALERT_H
 #define	LED_ALERT_H
 
-#define ALERT_DELAY_LOADING     100
-#define ALERT_DELAY_ERROR       500
-#define ALERT_DELAY_FALLING     200
-#define ALERT_DELAY_CRASH       400
-#define ALERT_DELAY_GRANULARITY 20
+#include "config.h"
 
 class Alert {
 public:

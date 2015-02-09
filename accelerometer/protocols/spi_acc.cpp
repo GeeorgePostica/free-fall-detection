@@ -36,15 +36,8 @@ void vSpiInit(){
     cs::mode(Mode::OUTPUT);
     cs::high();
     
-    /* Basic SPI configuration for LIS3DSH accelerometer
-     * MSB first; 8bit data format; CPHA=1 CPOL=1; */
-    SPI->CR1 |= SPI_CR1_BR_2;   /* Set the baud pre-scaler to 32 (5.25MHz) */
-    SPI->CR1 |= SPI_CR1_CPHA;   /* Set the CPHA=1 */
-    SPI->CR1 |= SPI_CR1_CPOL;   /* Set the CPOL=1 */
-    SPI->CR1 |= SPI_CR1_MSTR;   /* Set the master mode */
-    SPI->CR1 |= SPI_CR1_SSM;    /* Set software slave select */
-    SPI->CR1 |= SPI_CR1_SSI;    /* Set internal slave select */
-    
+    /* Configure the SPI */
+    SPI->CR1 |= SPI_ACC_CONFIG;
     
     SPI->CR1 |= SPI_CR1_SPE;    /* Enable the SPI */
     

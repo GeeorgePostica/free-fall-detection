@@ -94,18 +94,7 @@ short sAccGetAxis(char axisRegAddress) {
     return res;
 }
 
-void vAccGetXYZ(float xyz[]) {
-    short values[3];
-    vAccBlockDataUpdate(1);
-    vSpiReadArrayShort(ACC_ADDR_OUT_X_L, values, 3);
-    //vAccBlockDataUpdate(0);
-    /*Order reversed due to SPI protocol*/
-    xyz[0] = values[0] * ACC.scale;
-    xyz[1] = values[1] * ACC.scale;
-    xyz[2] = values[2] * ACC.scale;
-}
-
-void vAccGetAverageXYZ(float xyz[], int samples){
+void vAccGetXYZ(float xyz[], int samples){
     if(samples < 1){
         return;
     }
@@ -113,6 +102,7 @@ void vAccGetAverageXYZ(float xyz[], int samples){
     int i=0;
     while(i < samples){
         if(iAccIsDataReady()) {
+            vAccBlockDataUpdate(1);
             vSpiReadArrayShort(ACC_ADDR_OUT_X_L, values, 3);
             xyz[0] += (float) values[0];
             xyz[1] += (float) values[1];

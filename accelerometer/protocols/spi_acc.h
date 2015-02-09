@@ -10,32 +10,51 @@
 
 #include "../config.h"
 
-// If DEBUG is enabled, prints some detailed info about SPI transmission
-#ifdef SPI_ACC_DEBUG
-#define DEBUG_SPI(...) printf(__VA_ARGS__)
-#else
-#define DEBUG_SPI(...)
-#endif
-
 #ifndef DEBUG_LOG
 #define DEBUG_LOG(...)
 #endif
 //------------------------------------------------------------------------
-
-#define SPI_ACC_RW          0x80    /* 1: Read (OR)  0: Write (AND NOT) */
-#define SPI_ACC_MS          0x40    /* 1: Master (OR) 0: Slave (AND NOT) */
-
-#define SPI SPI1                    /* Set the SPI1 for SPI mems */
-
-#define SPI_ACC_CS_DELAY    10      /* CS delay before SPI start in us */
-#define SPI_ACC_WRITE_DELAY 50      /* MEMS write delay */
-
+/**
+ * Initiates the SPI and configures it */
 void vSpiInit();
+
+/**
+ * Send a byte through SPI
+ * @param addr the register address where to write
+ * @param data the data byte to be sent */
 void vSpiWriteByte(char addr, char data);
+
+/**
+ * Receive a data byte from specified slave register
+ * @param addr the slave register address where to read from
+ * @return the data byte received from slave */
 char cSpiReadByte(char addr);
+
+/**
+ * Receive an array of bytes from the slave over the SPI
+ * @param addr the starting address of the slave register where to start
+ * @param data the array where to store the received bytes
+ * @param len the length of the array */
 void vSpiReadBytes(char addr, char data[], int len);
+
+/**
+ * Receive an array of bytes from the slave over the SPI with LSB first
+ * @param addr the starting address of the slave register where to start
+ * @param data the array where to store the received bytes
+ * @param len the length of the array */
 void vSpiReadBytesSPIorder(char addr, char data[], int len);
+
+/**
+ * Receive a short value from the slave over the SPI
+ * @param addr the address of the register where to read from
+ * @return the short value from the slave */
 short sSpiReadShort(char addr);
+
+/**
+ * Receive an array of short values over the SPI
+ * @param addr the address of the register where to start the read from
+ * @param data the array where to store the received values
+ * @param len the length of the array */
 void vSpiReadArrayShort(char addr, short data[], int len);
 
 #endif	/* SPI_ACC_H */
