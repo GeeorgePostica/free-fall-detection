@@ -38,9 +38,12 @@ void *vFallChecking(void *args){
     stable = 1;
     
     /* Initiate the Accelerometer */
-    vAccInit();
+    if(!iAccInit()){
+        DEBUG_LOG("Fall detection: FAILED\n");
+        return NULL;
+    }
     
-    DEBUG_LOG("\nFall detection: ENABLED\n");
+    DEBUG_LOG("Fall detection: ENABLED\n");
     /* Cycle which analyzes the data for potential free fall */
     while(stable){
         time = 0;
@@ -65,7 +68,8 @@ void *vFallChecking(void *args){
         pthread_create(&crashCheckThread, NULL, vCrashCheck, NULL);
         callback();         // call the callback function
     }
-    DEBUG_LOG("\nFall detection: DISABLED\n");
+    DEBUG_LOG("Fall detection: DISABLED\n");
+    vAccStop();
     return NULL;
 }
 

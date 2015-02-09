@@ -38,13 +38,6 @@ char cSpiReadByte(char addr);
 void vSpiReadBytes(char addr, char data[], int len);
 
 /**
- * Receive an array of bytes from the slave over the SPI with LSB first
- * @param addr the starting address of the slave register where to start
- * @param data the array where to store the received bytes
- * @param len the length of the array */
-void vSpiReadBytesSPIorder(char addr, char data[], int len);
-
-/**
  * Receive a short value from the slave over the SPI
  * @param addr the address of the register where to read from
  * @return the short value from the slave */
@@ -57,5 +50,8 @@ short sSpiReadShort(char addr);
  * @param len the length of the array */
 void vSpiReadArrayShort(char addr, short data[], int len);
 
+/**
+ * Stops the SPI (clock gating) */
+void vSpiShutdown();
 #endif	/* SPI_ACC_H */
 

@@ -11,14 +11,16 @@ using namespace miosix;
 
 void falling(){
     vAlertShow(Alert::Falling);
+    DEBUG_LOG("\n**** ALERT! FREE FALL DETECTED ****\n");
 }
 
 int main() {
     vAlertInit();
     vAlertShow(Alert::Loading);
     vInitFallDetection(falling);
+    vAlertShow(Alert::Running);
     for (;;) {
-        DEBUG_LOG("\nTick");
+        DEBUG_LOG("Tick\n");
         Thread::sleep(10000);
     }
 

@@ -90,7 +90,7 @@ typedef struct{
 } ACC_TypeDef;
 
 /* Accelerometer function prototypes */
-void vAccInit();
+int iAccInit();
 float fAccGetX();       /* Get the acceleration along X-axis. [m/s^2] */
 float fAccGetY();       /* Get the acceleration along Y-axis. [m/s^2] */
 float fAccGetZ();       /* Get the acceleration along Z-axis. [m/s^2] */
@@ -99,15 +99,11 @@ void vAccSoftReset();
 void vAccReboot();
 void vAccSetScale(const char scale);
 void vAccSetRate(const char rate);
-//void vAccSelfTest(const char SelfTest);
 void vAccEnableAxis(const char Axis, int enable);
-void vAccEnableFIFO(int enable);
 int iAccIsDataOverrun();
 int iAccIsDataOverrun(const char Axis);
 int iAccIsDataReady();
 int iAccIsDataReady(const char Axis);
-int iAccIsFIFOFilled();
-int iAccIsFIFOEmpty();
 
 void vAccSetOffsetX(char offset);
 void vAccSetOffsetY(char offset);
@@ -115,6 +111,7 @@ void vAccSetOffsetZ(char offset);
 
 char cAccGetINFO(char infoReg);
 
+void vAccStop();
 
 #endif	/* ACC_CONTROLS_H */
 

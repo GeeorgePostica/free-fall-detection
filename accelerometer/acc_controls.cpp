@@ -14,11 +14,11 @@ void vAccSetSPIMode(const char SPIMode);
 /********************************************/
 
 
-void vAccInit() {
+int iAccInit() {
     vSpiInit();
     char who = cSpiReadByte(ACC_ADDR_WHO_AM_I);
     if (who == ACC_WHO_AM_I) {
-        DEBUG_LOG("\nInitializing LIS3DSH ...\n");
+        DEBUG_LOG("Initializing LIS3DSH ...\n");
         
         /* Soft reset the accelerometer */
         vAccSoftReset();
@@ -32,11 +32,11 @@ void vAccInit() {
         DEBUG_ACC("-> FIFO turned off\n");
         
         /* Setting the default values in ACC struct */
-        ACC.CTRL_REG3 = 0x00;  // Data ready disabled, interrupts disabled
-        ACC.CTRL_REG4 = 0x87;  // 800Hz ODR, x/y/z enabled
-        ACC.CTRL_REG5 = 0x00;  // 800Hz AA, no self-test, 4-wire SPI
-        ACC.CTRL_REG6 = 0x10;  // FIFO disabled, Auto-increment enabled
-        ACC.FIFO_CTRL = 0x00;  // FIFO turned off
+        ACC.CTRL_REG3 = ACC_INIT_REG3;
+        ACC.CTRL_REG4 = ACC_INIT_REG4;
+        ACC.CTRL_REG5 = ACC_INIT_REG5;
+        ACC.CTRL_REG6 = ACC_INIT_REG6;
+        ACC.FIFO_CTRL = ACC_INIT_FIFO;
         
         /* Writing the registers of accelerometer */
         vSpiWriteByte(ACC_ADDR_CTRL_REG3, ACC.CTRL_REG3);
@@ -55,19 +55,21 @@ void vAccInit() {
         vAccSetOffsetZ(ACC_OFFSET_Z);
         
         DEBUG_LOG(" ... initialization done\n\n");
+        return 1;
     }
     else if(who != 00){
-        DEBUG_LOG("\nCould not identify LIS3DSH !!\n");
+        DEBUG_LOG("Could not identify LIS3DSH !!\n");
     }
     else{
-        DEBUG_LOG("\nCould not connect to LIS3DSH !!\n");
+        DEBUG_LOG("Could not connect to LIS3DSH !!\n");
     }
+    return 0;
 }
 
 void vAccReboot() {
-    DEBUG_LOG("\n\nRebooting accelerometer...\n");
+    DEBUG_LOG("Rebooting accelerometer...\n");
     vSpiWriteByte(ACC_ADDR_CTRL_REG6, ACC.CTRL_REG6 | (1<<7));
-    vAccInit();
+    iAccInit();
 }
 
 void vAccSoftReset() {
@@ -166,28 +168,6 @@ void vAccSetRate(const char rate) {
     vSpiWriteByte(ACC_ADDR_CTRL_REG4, ACC.CTRL_REG4);
 }
 
-void vAccSelfTest(const char SelfTest) {
-    if ((SelfTest & ACC_CTRL_REG5_SELF_TEST_PROHIBITED) 
-            != ACC_CTRL_REG5_SELF_TEST_PROHIBITED) { //Avoid not allowed state
-        ACC.CTRL_REG5 = (ACC.CTRL_REG5 & ~ACC_SELF_TEST_MASK)
-                | (SelfTest & ACC_SELF_TEST_MASK);
-    }
-    vSpiWriteByte(ACC_ADDR_CTRL_REG5, ACC.CTRL_REG5);
-    //TODO: Need to finish this function
-}
-
-void vAccSetFIFOMode(const char FIFOMode) {
-    ACC.FIFO_CTRL = (ACC.FIFO_CTRL & ~ACC_FIFO_MODE_MASK)
-            | (FIFOMode & ACC_FIFO_MODE_MASK);
-    vSpiWriteByte(ACC_ADDR_FIFO_CTRL, ACC.FIFO_CTRL);
-}
-
-void vAccSetSPIMode(const char SPIMode) {
-    ACC.CTRL_REG5 = (ACC.CTRL_REG5 & ~(ACC_SPI_MODE_3WIRE))
-            | (SPIMode & ACC_SPI_MODE_3WIRE);
-    vSpiWriteByte(ACC_ADDR_CTRL_REG5, ACC.CTRL_REG5);
-}
-
 void vAccBlockDataUpdate(int block) {
     block ? ACC.CTRL_REG4 |= 1 << 3 : ACC.CTRL_REG4 &= ~(1 << 3);
     vSpiWriteByte(ACC_ADDR_CTRL_REG4, ACC.CTRL_REG4);
@@ -225,15 +205,11 @@ int iAccIsDataReady(const char Axis) {
     return (int) (cSpiReadByte(ACC_ADDR_STATUS) & (Axis & ACC_AXIS_MASK));
 }
 
-int iAccIsFIFOFilled() {
-    return (int) (cSpiReadByte(ACC_ADDR_FIFO_SRC) & (1 << 6));
-}
-
-int iAccIsFIFOEmpty() {
-    return (int) (cSpiReadByte(ACC_ADDR_FIFO_SRC) & (1 << 5));
-}
-
 char cAccGetINFO(char infoReg) {
     return cSpiReadByte(infoReg);
 }
 
+void vAccStop(){
+    vSpiShutdown();
+    DEBUG_LOG("Accelerometer LIS3DSH disconnected\n");
+}

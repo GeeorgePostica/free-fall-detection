@@ -42,6 +42,12 @@
 #define ACC_OFFSET_Y    0x04
 #define ACC_OFFSET_Z    0x0C
 
+/* Initial values for accelerometer registers */
+#define ACC_INIT_REG3   0x00;  // Data ready disabled, interrupts disabled
+#define ACC_INIT_REG4   0x87;  // 800Hz ODR, x/y/z enabled
+#define ACC_INIT_REG5   0x00;  // 800Hz AA, no self-test, 4-wire SPI
+#define ACC_INIT_REG6   0x10;  // FIFO disabled, Auto-increment enabled
+#define ACC_INIT_FIFO   0x00;  // FIFO turned off
 
 /*----------------------------------------------------------------------------*/
 /**** SPI SETTINGS -----------------------------------------------------------*/
@@ -57,6 +63,16 @@
 #define SPI_ACC_CONFIG      (SPI_CONFIG_BR | SPI_CONFIG_MASTER | SPI_CONFIG_POL)
 
 #define SPI                     SPI1    /* Set the SPI1 for SPI mems */
+#define SPI_3WIRE_GPIO          GPIOA_BASE
+#define SPI_CS_GPIO             GPIOE_BASE
+#define SPI_CS_PIN              3
+#define SPI_SCK_PIN             5
+#define SPI_MOSI_PIN            6
+#define SPI_MISO_PIN            7
+#define SPI_SCK_AF              5
+#define SPI_MOSI_AF             5
+#define SPI_MISO_AF             5
+
 #define SPI_ACC_CS_DELAY        10      /* CS delay before SPI start in us */
 #define SPI_ACC_WRITE_DELAY     50      /* MEMS write delay */
 
