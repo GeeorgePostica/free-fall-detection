@@ -6,7 +6,6 @@
 void (*cbFunctionTIM2)();
 void (*cbFunctionTIM3)();
 void (*cbFunctionTIM4)();
-void (*cbFunctionTIM5)();
 
 void TIM2_IRQHandler(){
     
@@ -17,10 +16,6 @@ void TIM3_IRQHandler(){
 }
 
 void TIM4_IRQHandler(){
-    
-}
-
-void TIM5_IRQHandler(){
     
 }
 
@@ -38,9 +33,6 @@ Timer* Timer::Use(TIM_TypeDef hwTimer){
     else if(hwTimer == TIM4){
         return Use(HWTimer::timer4);
     }
-    else if(hwTimer == TIM5){
-        return Use(HWTimer::timer5);
-    }
     return Use(HWTimer::timer2);
 }
 
@@ -57,7 +49,7 @@ Timer::~Timer() {
 
 void Timer::start(Resolution res) {
     TIMer->DIER = RESET;       //Disable interrupt
-    TIMer->ARR = MAX_ARR;
+    TIMer->ARR = MAX_ARR;      //Set the max value
     //TIMer->CR1 |= TIM_CR1_ARPE; //Enable shadow register
     TIMer->CR1 |= TIM_CR1_URS  //Enable update request source
                 | TIM_CR1_CEN; //Enable the timer
@@ -66,6 +58,10 @@ void Timer::start(Resolution res) {
 void Timer::start(long tickTimeUs, void(*callbackFunction)()) {
     
     
+    setCallbackFunction(callbackFunction);
+}
+
+void Timer::setCallbackFunction(void(*callbackFunction)()) {
     switch(index){
         case 0:
             cbFunctionTIM2 = callbackFunction;
@@ -73,11 +69,8 @@ void Timer::start(long tickTimeUs, void(*callbackFunction)()) {
         case 1:
             cbFunctionTIM3 = callbackFunction;
             break;
-        case 2:
-            cbFunctionTIM4 = callbackFunction;
-            break;
         default:
-            cbFunctionTIM5 = callbackFunction;
+            cbFunctionTIM4 = callbackFunction;
             break;
     }
 }
@@ -90,4 +83,17 @@ unsigned int Timer::elapsedTimeUs() {
     return (unsigned int) TIMer->CNT;
 }
 
+void Timer::init() {
+    if(timer5 == NULL){
+       timer5 = new Timer(); 
+    }
+}
+
+void Timer::halt() {
+
+}
+
+long int Timer::time() {
+    
+}
 

@@ -8,7 +8,7 @@
 #ifndef ACC_CONTROLS_H
 #define	ACC_CONTROLS_H
 
-#include "flags.h"
+#include "config.h"
 #include "acc_registers.h"
 
 /* Full Scale multipliers */

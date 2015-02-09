@@ -8,7 +8,19 @@
 #ifndef SPI_ACC_H
 #define	SPI_ACC_H
 
-#include "../flags.h"
+#include "../config.h"
+
+// If DEBUG is enabled, prints some detailed info about SPI transmission
+#ifdef SPI_ACC_DEBUG
+#define DEBUG_SPI(...) printf(__VA_ARGS__)
+#else
+#define DEBUG_SPI(...)
+#endif
+
+#ifndef DEBUG_LOG
+#define DEBUG_LOG(...)
+#endif
+//------------------------------------------------------------------------
 
 #define SPI_ACC_RW          0x80    /* 1: Read (OR)  0: Write (AND NOT) */
 #define SPI_ACC_MS          0x40    /* 1: Master (OR) 0: Slave (AND NOT) */
