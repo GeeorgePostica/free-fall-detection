@@ -7,6 +7,7 @@ using namespace miosix;
 /*********** FUNCTION PROTOTYPES *************/
 void *threadRun(void* args);
 void switchAlert(void(*nextAlert)());
+int cannotContinue(int checkPeriod);
 /*********************************************/
 
 typedef Gpio<GPIOD_BASE, 14> ledRed;
@@ -63,55 +64,44 @@ void vAlertStop() {
 
 void AlertLoading() {
     while (running) {
-        delayMs(ALERT_DELAY_LOADING/2);
+        if(cannotContinue(ALERT_DELAY_LOADING/2)) break;
         ledYellow::high();
-        if (!running) break;
-        delayMs(ALERT_DELAY_LOADING);
+        if(cannotContinue(ALERT_DELAY_LOADING)) break;
         ledYellow::low();
-        if (!running) break;
-        delayMs(ALERT_DELAY_LOADING/2);
+        if(cannotContinue(ALERT_DELAY_LOADING/2)) break;
         ledRed::high();
-        if (!running) break;
-        delayMs(ALERT_DELAY_LOADING);
+        if(cannotContinue(ALERT_DELAY_LOADING)) break;
         ledRed::low();
-        if (!running) break;
-        delayMs(ALERT_DELAY_LOADING/2);
+        if(cannotContinue(ALERT_DELAY_LOADING/2)) break;
         ledBlue::high();
-        if (!running) break;
-        delayMs(ALERT_DELAY_LOADING);
+        if(cannotContinue(ALERT_DELAY_LOADING)) break;
         ledBlue::low();
-        if (!running) break;
-        delayMs(ALERT_DELAY_LOADING/2);
+        if(cannotContinue(ALERT_DELAY_LOADING/2)) break;
         ledGreen::high();
-        if (!running) break;
-        delayMs(ALERT_DELAY_LOADING);
+        if(cannotContinue(ALERT_DELAY_LOADING)) break;
         ledGreen::low();
     }
 }
 
 void AlertFalling() {
     vSetLeds(1, 0, 1, 0);
-    while (running) {
-        delayMs(ALERT_DELAY_FALLING);
+    while (!cannotContinue(ALERT_DELAY_FALLING)) {
         vToggleLeds();
     }
 }
 
 void AlertCrash() {
     vSetLeds(1, 1, 1, 1);
-    while (running) {
-        delayMs(ALERT_DELAY_CRASH);
+    while (!cannotContinue(ALERT_DELAY_CRASH)) {
         vToggleLeds();
     }
 }
 
 void AlertError() {
     vSetLeds(0, 1, 0, 0);
-    while (running) {
-        delayMs(ALERT_DELAY_ERROR);
+    while (!cannotContinue(ALERT_DELAY_ERROR)) {
         ledRed::low();
-        if (!running) break;
-        delayMs(ALERT_DELAY_ERROR);
+        if(cannotContinue(ALERT_DELAY_ERROR)) break;
         ledRed::high();
     }
 }
@@ -119,7 +109,7 @@ void AlertError() {
 void nothing(){
     vSetLeds(0,0,0,1);
     while(running){
-        delayMs(5);
+        delayMs(10);
     }
 }
 
@@ -162,3 +152,21 @@ void *threadRun(void *args){
     }
     return NULL;
 }
+
+#ifdef ALERT_DELAY_GRANULARITY
+int cannotContinue(int checkPeriod){
+    while(checkPeriod > 0){
+        if(!running) {
+            return 1;
+        }
+        delayMs(ALERT_DELAY_GRANULARITY);
+        checkPeriod -= ALERT_DELAY_GRANULARITY;
+    }
+    return 0;
+}
+#else
+int cannotContinue(int checkPeriod){
+    delayMs(checkPeriod);
+    return !running;
+}
+#endif

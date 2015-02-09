@@ -18,18 +18,18 @@ void vAccInit() {
     vSpiInit();
     char who = cSpiReadByte(ACC_ADDR_WHO_AM_I);
     if (who == ACC_WHO_AM_I) {
-        printf("\nInitializing LIS3DSH ...\n");
+        DEBUG_LOG("\nInitializing LIS3DSH ...\n");
         
         /* Soft reset the accelerometer */
         vAccSoftReset();
         
         /* Print the configuration */
-        printf("Configuring the accelerometer: \n");
-        printf("-> Data ready disabled, interrupts disabled\n");
-        printf("-> 800Hz ODR, x/y/z enabled\n");
-        printf("-> 800Hz AA, no self-test, 4-wire SPI\n");
-        printf("-> FIFO disabled, Auto-increment enabled\n");
-        printf("-> FIFO turned off\n");
+        DEBUG_ACC("Configuring the accelerometer: \n");
+        DEBUG_ACC("-> Data ready disabled, interrupts disabled\n");
+        DEBUG_ACC("-> 800Hz ODR, x/y/z enabled\n");
+        DEBUG_ACC("-> 800Hz AA, no self-test, 4-wire SPI\n");
+        DEBUG_ACC("-> FIFO disabled, Auto-increment enabled\n");
+        DEBUG_ACC("-> FIFO turned off\n");
         
         /* Setting the default values in ACC struct */
         ACC.CTRL_REG3 = 0x00;  // Data ready disabled, interrupts disabled
@@ -54,18 +54,18 @@ void vAccInit() {
         //vAccSetOffsetY(ACC_OFFSET_Y);
         vAccSetOffsetZ(ACC_OFFSET_Z);
         
-        printf(" ... initialization done\n\n");
+        DEBUG_LOG(" ... initialization done\n\n");
     }
     else if(who != 00){
-        printf("\nCould not identify LIS3DSH !!\n");
+        DEBUG_LOG("\nCould not identify LIS3DSH !!\n");
     }
     else{
-        printf("\nCould not connect to LIS3DSH !!\n");
+        DEBUG_LOG("\nCould not connect to LIS3DSH !!\n");
     }
 }
 
 void vAccReboot() {
-    printf("\n\nRebooting accelerometer...\n");
+    DEBUG_LOG("\n\nRebooting accelerometer...\n");
     vSpiWriteByte(ACC_ADDR_CTRL_REG6, ACC.CTRL_REG6 | (1<<7));
     vAccInit();
 }
@@ -131,28 +131,28 @@ void vAccSetScale(const char scale) {
     switch (scale) {
         case ACC_CTRL_REG5_FSCALE_4G: 
             ACC.scale = ACC_SCALE_4G;
-            ACC.offset = 2;
-            printf("-> FScale = 4G\n");
+            ACC.offset = ACC_OFFSET_4G;
+            DEBUG_ACC("-> FScale = 4G\n");
             break;
         case ACC_CTRL_REG5_FSCALE_6G: 
             ACC.scale = ACC_SCALE_6G;
-            ACC.offset = 3;
-            printf("-> FScale = 6G\n");
+            ACC.offset = ACC_OFFSET_6G;
+            DEBUG_ACC("-> FScale = 6G\n");
             break;
         case ACC_CTRL_REG5_FSCALE_8G: 
             ACC.scale = ACC_SCALE_8G;
-            ACC.offset = 4;
-            printf("-> FScale = 8G\n");
+            ACC.offset = ACC_OFFSET_8G;
+            DEBUG_ACC("-> FScale = 8G\n");
             break;
         case ACC_CTRL_REG5_FSCALE_16G: 
             ACC.scale = ACC_SCALE_16G;
-            ACC.offset = 16;
-            printf("-> FScale = 16G\n");
+            ACC.offset = ACC_OFFSET_16G;
+            DEBUG_ACC("-> FScale = 16G\n");
             break;
         default: 
             ACC.scale = ACC_SCALE_2G;
-            ACC.offset = 1;
-            printf("-> FScale = 2G\n");
+            ACC.offset = ACC_OFFSET_2G;
+            DEBUG_ACC("-> FScale = 2G\n");
             break;
     }
     vSpiWriteByte(ACC_ADDR_CTRL_REG5, ACC.CTRL_REG5);

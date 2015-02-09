@@ -8,6 +8,7 @@
 #ifndef ACC_CONTROLS_H
 #define	ACC_CONTROLS_H
 
+#include "flags.h"
 #include "acc_registers.h"
 
 /* Full Scale multipliers */
@@ -18,6 +19,12 @@
 #define ACC_SCALE_6G    6.0 * ACC_S_RATIO * ACC_G
 #define ACC_SCALE_8G    8.0 * ACC_S_RATIO * ACC_G
 #define ACC_SCALE_16G   24.0 * ACC_S_RATIO * ACC_G  //It seems like it is a bug
+/* Default offsets based on scale */
+#define ACC_OFFSET_2G   1
+#define ACC_OFFSET_4G   2
+#define ACC_OFFSET_6G   3
+#define ACC_OFFSET_8G   4
+#define ACC_OFFSET_16G  16
 
 /* Offset values: vary on each accelerometer*/
 #define ACC_OFFSET_X    0x0C

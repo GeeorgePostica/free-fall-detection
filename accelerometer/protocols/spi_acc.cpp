@@ -18,7 +18,7 @@ char cSpiSendReceiveData(char data);
 /**********************************************/
 
 void vSpiInit(){
-    printf("\nSPI initializing... ");
+    DEBUG_LOG("\nSPI initializing... ");
     
     RCC->APB2ENR |= RCC_APB2ENR_SPI1EN;     /* Enable clock for SPI */
     RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;    /* Enable clock on GPIOA */
@@ -48,27 +48,21 @@ void vSpiInit(){
     
     SPI->CR1 |= SPI_CR1_SPE;    /* Enable the SPI */
     
-    printf("done: CR1 = 0x%08x\n\n", (unsigned int)(SPI->CR1));
+    DEBUG_LOG("done: CR1 = 0x%08x\n\n", (unsigned int)(SPI->CR1));
 }
 
 void vSpiWriteByte(char addr, char data){
-#ifdef SPI_ACC_DEBUG
-    printf("\nWriting to reg:0x%02x byte:0x%02x", addr, data);
-#endif
+    DEBUG_SPI("\nWriting to reg:0x%02x byte:0x%02x", addr, data);
     
     /* Start the accelerometer SPI */
     vSpiStartTransmission();
 
-#ifdef SPI_ACC_DEBUG    
-    printf("\n   sent byte: \t0x%02x", addr);
-#endif
+    DEBUG_SPI("\n   sent byte: \t0x%02x", addr);
     
     /* Send the register address to be written to*/
     cSpiSendReceiveData(addr);
 
-#ifdef SPI_ACC_DEBUG    
-    printf("\t0x%02x\n", data);
-#endif
+    DEBUG_SPI("\t0x%02x\n", data);
     
     /* Sending the data to be written */
     cSpiSendReceiveData(data);
@@ -83,20 +77,20 @@ void vSpiWriteByte(char addr, char data){
 char cSpiReadByte(char addr){
     char byte[] = { 0 };
     
-#ifdef SPI_ACC_DEBUG
-    printf("Reading from reg: 0x%02x ...", addr);
-#endif 
+    DEBUG_SPI("Reading from reg: 0x%02x ...", addr);
    
     iSpiRead(addr, byte, 1);
     return byte[0];
 }
 
 void vSpiReadBytesSPIorder(char addr, char data[], int len){
+    DEBUG_SPI("Reading spi order bytes, start reg: 0x%02x ...", addr);
     iSpiRead(addr, data, len);
 }
 
 void vSpiReadBytes(char addr, char data[], int len){
     char bytes[len];
+    DEBUG_SPI("Reading bytes, start reg: 0x%02x ...", addr);
     iSpiRead(addr, bytes, len);
     for(int i=0; i<len; i++){
         data[i] = bytes[len - i - 1];
@@ -105,12 +99,14 @@ void vSpiReadBytes(char addr, char data[], int len){
 
 short sSpiReadShort(char addr){
     char bytes[2];
+    DEBUG_SPI("Reading short from reg: 0x%02x ...", addr);
     iSpiRead(addr, bytes, 2);
     return (short) ((bytes[1] << 8) | bytes[0]);
 }
 
 void vSpiReadArrayShort(char addr, short data[], int len){
     char bytes[2*len];
+    DEBUG_SPI("Reading shorts, start reg: 0x%02x ...", addr);
     iSpiRead(addr, bytes, 2*len);
     for(int i=0; i< len; i++){
         data[i] = (short) ((bytes[2*i+1] << 8) | bytes[2*i]);
@@ -127,16 +123,12 @@ int iSpiRead(char addr, char* data, int len){
     /* Start the accelerometer SPI */
     vSpiStartTransmission();
     
-#ifdef SPI_ACC_DEBUG    
-    printf("\n   sent byte: \t0x%02x\n", byte1);
-#endif
+    DEBUG_SPI("\n   sent byte: \t0x%02x\n", byte1);
     
     /* Send the register address to be written to*/
     byte1 = cSpiSendReceiveData(byte1);
     
-#ifdef SPI_ACC_DEBUG    
-    printf("   received: \t0x%02x\t", byte1);
-#endif
+    DEBUG_SPI("   received: \t0x%02x\t", byte1);
     
     /* Receiving the (multiple) data bytes in SPI order */
     for(int i=0; i<len; i++){
@@ -144,14 +136,10 @@ int iSpiRead(char addr, char* data, int len){
          *  from the LS byte to the MS byte */
         data[i] = cSpiSendReceiveData(0x00);  
         
-#ifdef SPI_ACC_DEBUG        
-        printf("0x%02x\t", data[i]);
-#endif
+        DEBUG_SPI("0x%02x\t", data[i]);
     }
     
-#ifdef SPI_ACC_DEBUG    
-    printf("\n");
-#endif
+    DEBUG_SPI("\n");
     
     /* Stop the accelerometer SPI */
     vSpiEndTransmission();
