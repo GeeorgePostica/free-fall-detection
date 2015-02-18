@@ -33,11 +33,16 @@ void vInitFallDetection(void (*callbackFunction)(), void (*crashCallBackFunc)())
         fd_running ? DEBUG_LOG("Already running\n") : DEBUG_LOG("No callback\n");
         return;
     }
+    // Set the running flag
     fd_running = 1;
     callback = callbackFunction;
-    pthread_t fallCheckThread;
+    pthread_t fallCheckThread; // runs the fall detection algorithm
     pthread_t crashCheckThread; // runs the crash analysis algorithm
+    
+    // Create the fall detection thread
     pthread_create(&fallCheckThread, NULL, vFallChecking, NULL);
+    
+    // Check if the crash detection algorithm should be launched
     if (crashCallBackFunc != NULL) {
         crashCallback = crashCallBackFunc;
         pthread_create(&crashCheckThread, NULL, vCrashCheck, NULL);
@@ -62,18 +67,18 @@ void *vFallChecking(void *args) {
     DEBUG_LOG("Fall detection: ENABLED\n");
     /* Cycle which analyzes the data for potential free fall */
     while (fd_running) {
-        vAccGetXYZ(accel, FD_AVG_SAMPLES);
+        vAccGetXYZ(accel, 1);
         DEBUG_FD("stable mag: %f\n", vectorMag(accel));
         if (VEC_SQR_MAG(accel) < MAG_SQR_THRES) { // Potential free fall check
-            // Enter a more detailed free fall analysis
             falling = 1; // Set the falling flag
             fd_running = 0; // and exit the analysis loop
             timer->clear(); // reset the timer
+            // Enter a more detailed free fall analysis
             do {
                 timer->start();
                 vAccGetXYZ(accel, FD_AVG_SAMPLES);
                 if (VEC_SQR_MAG(accel) > MAG_SQR_THRES) { //Check if still falling
-                    falling = 0;
+                    falling = 0;            //If not, exit the internal loop
                     fd_running = 1;
                     timer->stop();
                     break;
@@ -91,8 +96,11 @@ void *vFallChecking(void *args) {
             DEBUG_LOG("Launching CRASH TEST...\n");
             crashCheckRun = 1;
         }
+        //DEBUG_LOG("timer->interval: %d\n", timer->interval());
         callback(); // call the callback function
     }
+    // If crash test was not launched, then stop the accelerometer, 
+    // otherwise let the crash test to stop it
     if(!crashCheckRun){
         vAccStop();
     }
@@ -113,15 +121,24 @@ void *vCrashCheck(void *args) {
     float xyz[3];
     float magnitude;
     int interval;
-    while (crashCheckRun == 0){
-        delayMs(1);
+    
+    /* Wait for the fall detection algorithm to signal the crash test start
+     * this is made to avoid thread creation overhead, that is, create the thread
+     * during fall detection initialization and let it wait for a certain signal */
+    while (!crashCheckRun){
+        delayUs(10);
     }
+    
+    // Analyze the first set of data
     timer->start();
-    vAccGetXYZ(xyz, FD_CRASH_ANALYSIS_SAMPLES);
+    vAccGetXYZ(xyz, 1);
     timer->stop();
     magnitude = vectorMag(xyz);
     interval = timer->interval();
+    
+    // Analyze data until it is no more in free fall status
     while (magnitude < FD_MAG_THRESHOLD && crashCheckRun) {
+        // Since there is no way to measure velocity, the on
         impact.velocity += (ACC_G - magnitude)*(timer->interval() - interval);
         interval = timer->interval();
         timer->start();

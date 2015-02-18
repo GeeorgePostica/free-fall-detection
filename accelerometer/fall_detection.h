@@ -31,9 +31,7 @@ void vStopFallDetection();
 typedef struct impactData{
     int crashOccurred;
     int fallDurationMs;
-    //float velocity[3];
     float velocity;
-    //float impulse[3];
     float impulse;
 } impactData;
 /*******************************************************/

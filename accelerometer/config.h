@@ -20,18 +20,18 @@
 //#define FD_TICK_TO_ms       168000  // Timer->interval() returns ms not ticks!!
 
 /** Number of samples of accelerometer data to be averaged */
-#define FD_AVG_SAMPLES      10
+#define FD_AVG_SAMPLES      5
 
 /** Acceleration vector magnitude threshold, which tells whether
  *  there is a free fall or not. */
-#define FD_MAG_THRESHOLD    1.0
+#define FD_MAG_THRESHOLD    2.0
 
 /** Amount of time in ms that the accelerometer vector magnitude should be
  *  below threshold to be considered a free fall */
-#define FD_TIME_THRESHOLD   50
+#define FD_TIME_THRESHOLD   80
 
 /** Amount of samples for the crash analysis algorithm to get from MEMS */
-#define FD_CRASH_ANALYSIS_SAMPLES 3
+#define FD_CRASH_ANALYSIS_SAMPLES 2
 
 /*----------------------------------------------------------------------------*/
 /**** ACCELEROMETER SETTINGS -------------------------------------------------*/
@@ -107,13 +107,13 @@
 #define DEBUG_LOG(...) printf(__VA_ARGS__)
 
 // Display SPI transmission info (send/receive bytes)
-#define DEBUG_SPI(...) printf(__VA_ARGS__)
+//#define DEBUG_SPI(...) printf(__VA_ARGS__)
 
 // Display Accelerometer controls settings
 #define DEBUG_ACC(...) printf(__VA_ARGS__)       
 
 // Display Fall detection debug info
-#define DEBUG_FD(...) printf(__VA_ARGS__)
+//#define DEBUG_FD(...) printf(__VA_ARGS__)
 
 /******************************************************************************/
 

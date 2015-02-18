@@ -30,10 +30,11 @@ int main() {
     vAlertShow(Alert::Running);
     Timer* tim = new Timer();
     for (;;) {
-        DEBUG_LOG("Tick\n");
+        //Thread::sleep(10000);
+        /*DEBUG_LOG("Tick\n");
         tim->start();
         Thread::sleep(10000);
         tim->stop();
-        DEBUG_LOG("Timer: %d\n", tim->interval());
+        DEBUG_LOG("Timer: %d\n", tim->interval());*/
     }
 }
