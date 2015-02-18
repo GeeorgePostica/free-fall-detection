@@ -137,8 +137,8 @@ void *vCrashCheck(void *args) {
     interval = timer->interval();
     
     // Analyze data until it is no more in free fall status
-    while (magnitude < FD_MAG_THRESHOLD && crashCheckRun) {
-        // Since there is no way to measure velocity, the on
+    while (magnitude < FD_CRASH_MAG_THRESHOLD && crashCheckRun) {
+        // Since there is no way to measure velocity, we can only integrate
         impact.velocity += (ACC_G - magnitude)*(timer->interval() - interval);
         interval = timer->interval();
         timer->start();
@@ -151,9 +151,10 @@ void *vCrashCheck(void *args) {
     }
     impact.crashOccurred = 1;
     impact.fallDurationMs += interval;
-    impact.impulse = (ACC_G - magnitude)*(timer->interval() - interval) - impact.velocity;
+    magnitude = magnitude > ACC_G ? magnitude - ACC_G : ACC_G - magnitude;
+    impact.impulse = magnitude*(timer->interval() - interval) - impact.velocity;
     impact.velocity *= 0.001;
-    impact.impulse *= 0.001;
+    impact.impulse *= 0.001 * FD_CRASH_BOARD_MASS;
     crashCallback();
 
     vAccStop();

@@ -20,18 +20,25 @@
 //#define FD_TICK_TO_ms       168000  // Timer->interval() returns ms not ticks!!
 
 /** Number of samples of accelerometer data to be averaged */
-#define FD_AVG_SAMPLES      5
+#define FD_AVG_SAMPLES      2
 
 /** Acceleration vector magnitude threshold, which tells whether
  *  there is a free fall or not. */
-#define FD_MAG_THRESHOLD    2.0
+#define FD_MAG_THRESHOLD    2.5
 
 /** Amount of time in ms that the accelerometer vector magnitude should be
  *  below threshold to be considered a free fall */
 #define FD_TIME_THRESHOLD   80
 
 /** Amount of samples for the crash analysis algorithm to get from MEMS */
-#define FD_CRASH_ANALYSIS_SAMPLES 2
+#define FD_CRASH_ANALYSIS_SAMPLES 1
+
+/** Acceleration vector magnitude threshold, which tells whether
+ *  there is still a free fall or not. */
+#define FD_CRASH_MAG_THRESHOLD    4.0
+
+/** Board weight [kg]*/
+#define FD_CRASH_BOARD_MASS       0.06
 
 /*----------------------------------------------------------------------------*/
 /**** ACCELEROMETER SETTINGS -------------------------------------------------*/
@@ -42,7 +49,7 @@
 /* Offset values: vary on each accelerometer*/
 #define ACC_OFFSET_X    0x00    //0x0C
 #define ACC_OFFSET_Y    0x00    //0x04
-#define ACC_OFFSET_Z    0x0C
+#define ACC_OFFSET_Z    0x00    //0x0C
 
 /* Initial values for accelerometer registers */
 #define ACC_INIT_REG3   0x00;  // Data ready disabled, interrupts disabled

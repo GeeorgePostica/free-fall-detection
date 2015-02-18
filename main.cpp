@@ -16,6 +16,7 @@ void falling(){
 
 void crashing(){
     DEBUG_LOG("CRASH impact velocity: %f m/s\n", xGetImpactData().velocity);
+    DEBUG_LOG("CRASH impact impulse: %f N*s\n", xGetImpactData().impulse);
     DEBUG_LOG("CRASH fall duration: %d ms\n", xGetImpactData().fallDurationMs);
     
     if(xGetImpactData().velocity > 0.01){
@@ -28,13 +29,8 @@ int main() {
     vAlertShow(Alert::Loading);
     vInitFallDetection(falling, crashing);
     vAlertShow(Alert::Running);
-    Timer* tim = new Timer();
     for (;;) {
-        //Thread::sleep(10000);
-        /*DEBUG_LOG("Tick\n");
-        tim->start();
-        Thread::sleep(10000);
-        tim->stop();
-        DEBUG_LOG("Timer: %d\n", tim->interval());*/
+        Thread::sleep(2000);
+        DEBUG_LOG("Tick\n");
     }
 }
