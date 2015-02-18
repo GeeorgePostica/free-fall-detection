@@ -5,9 +5,9 @@
 using namespace miosix;
 
 /* GPIO pins declarations */
-typedef Gpio<SPI_3WIRE_GPIO, SPI_SCK_PIN> sck;
-typedef Gpio<SPI_3WIRE_GPIO, SPI_MISO_PIN> miso;
-typedef Gpio<SPI_3WIRE_GPIO, SPI_MOSI_PIN> mosi;
+typedef Gpio<SPI_SCK_MOSI_MISO_GPIO, SPI_SCK_PIN> sck;
+typedef Gpio<SPI_SCK_MOSI_MISO_GPIO, SPI_MISO_PIN> miso;
+typedef Gpio<SPI_SCK_MOSI_MISO_GPIO, SPI_MOSI_PIN> mosi;
 typedef Gpio<SPI_CS_GPIO, SPI_CS_PIN> cs;
 
 /***************FUNCTION PROTOTYPES************/
@@ -47,7 +47,7 @@ void vSpiInit() {
     cs::high();
 
     /* Configure the SPI */
-    SPI->CR1 |= SPI_ACC_CONFIG;
+    SPI->CR1 |= SPI_CONFIG_REG;
 
     SPI->CR1 |= SPI_CR1_SPE; /* Enable the SPI */
 
@@ -78,31 +78,43 @@ void vSpiWriteByte(char addr, char data) {
 }
 
 char cSpiReadByte(char addr) {
+    /* Since SpiRead requires an array, instantiate a unitary array */
     char byte[] = {0};
 
     DEBUG_SPI("Reading from reg: 0x%02x ...", addr);
 
+    /* Read the SPI byte */
     iSpiRead(addr, byte, 1);
     return byte[0];
 }
 
 void vSpiReadBytes(char addr, char data[], int len) {
     DEBUG_SPI("Reading spi order bytes, start reg: 0x%02x ...", addr);
+    
     iSpiRead(addr, data, len);
 }
 
 short sSpiReadShort(char addr) {
+    /* 2 bytes to have a short (16bit) */
     char bytes[2];
+    
     DEBUG_SPI("Reading short from reg: 0x%02x ...", addr);
+    
     iSpiRead(addr, bytes, 2);
+    
+    /* Swap the bytes because SPI receives in LSB First manner */
     return (short) ((bytes[1] << 8) | bytes[0]);
 }
 
 void vSpiReadArrayShort(char addr, short data[], int len) {
+    /* Here len was intended for number of short values to read */
     char bytes[2 * len];
+    
     DEBUG_SPI("Reading shorts, start reg: 0x%02x ...", addr);
+    
     iSpiRead(addr, bytes, 2 * len);
     for (int i = 0; i < len; i++) {
+        /* Swap each received pair of bytes, because SPI receives LSB first */
         data[i] = (short) ((bytes[2 * i + 1] << 8) | bytes[2 * i]);
     }
 }
@@ -180,7 +192,19 @@ void vSpiEndTransmission() {
 }
 
 void vSpiShutdown(){
-    /* Enable clock for SPI */
+    /* Wait for any SPI transmission to end */
+    while (!(SPI->SR & SPI_SR_TXE));
+
+    /* Wait until SPI is not busy */
+    while (SPI->SR & SPI_SR_BSY);
+
+    /* Disable SPI */
+    SPI->CR1 &= ~SPI_CR1_SPE;
+    
+    /* Pull up the slave select, avoids the slave eternal wait for the master */
+    cs::high();
+    
+    /* Disable clock for SPI */
     if (SPI == SPI1) {
         RCC->APB2ENR &= ~RCC_APB2ENR_SPI1EN;
     } else if (SPI == SPI2) {

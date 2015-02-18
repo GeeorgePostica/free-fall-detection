@@ -2,7 +2,7 @@
 #include "acc_controls.h"
 #include "protocols/spi_acc.h"
 
-ACC_TypeDef ACC;        /* The data structure which represents the accelerometer */
+ACC_TypeDef ACC;     /* The data structure which represents the accelerometer */
 
 /************ FUNCTION PROTOTYPES ***********/
 short sAccGetAxis(char axisRegAddress);
@@ -18,18 +18,13 @@ int iAccInit() {
     vSpiInit();
     char who = cSpiReadByte(ACC_ADDR_WHO_AM_I);
     if (who == ACC_WHO_AM_I) {
-        DEBUG_LOG("Initializing LIS3DSH ...\n");
+        DEBUG_LOG("Initializing %s ...\n", ACC_ID);
         
         /* Soft reset the accelerometer */
         vAccSoftReset();
         
         /* Print the configuration */
-        DEBUG_ACC("Configuring the accelerometer: \n");
-        DEBUG_ACC("-> Data ready disabled, interrupts disabled\n");
-        DEBUG_ACC("-> 800Hz ODR, x/y/z enabled\n");
-        DEBUG_ACC("-> 800Hz AA, no self-test, 4-wire SPI\n");
-        DEBUG_ACC("-> FIFO disabled, Auto-increment enabled\n");
-        DEBUG_ACC("-> FIFO turned off\n");
+        DEBUG_ACC("Configuring the accelerometer: \n%s", ACC_PRINT_INIT_CONFIG);
         
         /* Setting the default values in ACC struct */
         ACC.CTRL_REG3 = ACC_INIT_REG3;
@@ -48,32 +43,33 @@ int iAccInit() {
         /* Set the full scale */
         vAccSetScale(ACC_CTRL_REG5_FSCALE_2G);
         
-        
         /* Set offsets */
-        //vAccSetOffsetX(ACC_OFFSET_X);
-        //vAccSetOffsetY(ACC_OFFSET_Y);
+        vAccSetOffsetX(ACC_OFFSET_X);
+        vAccSetOffsetY(ACC_OFFSET_Y);
         vAccSetOffsetZ(ACC_OFFSET_Z);
         
         DEBUG_LOG(" ... initialization done\n\n");
+        
+        /* Return positive outcome */
         return 1;
     }
     else if(who != 00){
-        DEBUG_LOG("Could not identify LIS3DSH !!\n");
+        DEBUG_LOG("Could not identify %s !!\n", ACC_ID);
     }
     else{
-        DEBUG_LOG("Could not connect to LIS3DSH !!\n");
+        DEBUG_LOG("Could not connect to %s !!\n", ACC_ID);
     }
     return 0;
 }
 
 void vAccReboot() {
     DEBUG_LOG("Rebooting accelerometer...\n");
-    vSpiWriteByte(ACC_ADDR_CTRL_REG6, ACC.CTRL_REG6 | (1<<7));
+    vSpiWriteByte(ACC_ADDR_CTRL_REG6, ACC.CTRL_REG6 | ACC_CTRL_REG6_REBOOT);
     iAccInit();
 }
 
 void vAccSoftReset() {
-    vSpiWriteByte(ACC_ADDR_CTRL_REG3, ACC.CTRL_REG3 | 1);
+    vSpiWriteByte(ACC_ADDR_CTRL_REG3, ACC.CTRL_REG3 | ACC_CTRL_REG3_SOFT_RESET);
 }
 
 float fAccGetX() {
@@ -169,28 +165,32 @@ void vAccSetRate(const char rate) {
 }
 
 void vAccBlockDataUpdate(int block) {
-    block ? ACC.CTRL_REG4 |= 1 << 3 : ACC.CTRL_REG4 &= ~(1 << 3);
+    block ? ACC.CTRL_REG4 |= ACC_CTRL_REG4_BLOCK_DATA_UPDATE 
+          : ACC.CTRL_REG4 &= ~ACC_CTRL_REG4_BLOCK_DATA_UPDATE;
     vSpiWriteByte(ACC_ADDR_CTRL_REG4, ACC.CTRL_REG4);
 }
 
 void vAccEnableAxis(const char Axis, int enable) {
+    /* Mask the input (in case a wrong Axis value was passed) */
     enable ? ACC.CTRL_REG4 |= (Axis & ACC_AXIS_MASK)
             : ACC.CTRL_REG4 &= ~(Axis & ACC_AXIS_MASK);
     vSpiWriteByte(ACC_ADDR_CTRL_REG4, ACC.CTRL_REG4);
 }
 
 void vAccEnableFIFO(int enable) {
-    enable ? ACC.CTRL_REG6 |= 1 << 6 : ACC.CTRL_REG6 &= ~(1 << 6);
+    enable ? ACC.CTRL_REG6 |= ACC_CTRL_REG6_FIFO_ENABLE 
+           : ACC.CTRL_REG6 &= ~ACC_CTRL_REG6_FIFO_ENABLE;
     vSpiWriteByte(ACC_ADDR_CTRL_REG6, ACC.CTRL_REG6);
 }
 
 void vAccEnableAddrInc(int enable) {
-    enable ? ACC.CTRL_REG6 |= 1 << 4 : ACC.CTRL_REG6 &= ~(1 << 4);
+    enable ? ACC.CTRL_REG6 |= ACC_CTRL_REG6_ADDR_INC 
+           : ACC.CTRL_REG6 &= ~ACC_CTRL_REG6_ADDR_INC;
     vSpiWriteByte(ACC_ADDR_CTRL_REG6, ACC.CTRL_REG6);
 }
 
 int iAccIsDataOverrun() {
-    return (int) (cSpiReadByte(ACC_ADDR_STATUS) & (1 << 7));
+    return (int) (cSpiReadByte(ACC_ADDR_STATUS) & ACC_STATUS_DATA_OVERRUN);
 }
 
 int iAccIsDataOverrun(const char Axis) {
@@ -198,7 +198,7 @@ int iAccIsDataOverrun(const char Axis) {
 }
 
 int iAccIsDataReady() {
-    return (int) (cSpiReadByte(ACC_ADDR_STATUS) & (1 << 3));
+    return (int) (cSpiReadByte(ACC_ADDR_STATUS) & ACC_STATUS_DATA_READY);
 }
 
 int iAccIsDataReady(const char Axis) {
@@ -210,6 +210,12 @@ char cAccGetINFO(char infoReg) {
 }
 
 void vAccStop(){
+    // Power down the accelerometer
+    ACC.CTRL_REG4 |= ACC_CTRL_REG4_ODR_POWER_DOWN;
+    vSpiWriteByte(ACC_ADDR_CTRL_REG4, ACC.CTRL_REG4);
+    
+    // Stop the SPI
     vSpiShutdown();
-    DEBUG_LOG("Accelerometer LIS3DSH disconnected\n");
+    
+    DEBUG_LOG("Accelerometer %s disconnected\n", ACC_ID);
 }

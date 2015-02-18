@@ -9,108 +9,141 @@
 #define	ACC_CONTROLS_H
 
 #include "config.h"
-#include "acc_registers.h"
+#include "acc_lis3dsh.h"
 
 /* Full Scale multipliers */
-#define ACC_S_RATIO     1.0/32768.0
-#define ACC_SCALE_2G    2.0 * ACC_S_RATIO * ACC_G
-#define ACC_SCALE_4G    4.0 * ACC_S_RATIO * ACC_G
-#define ACC_SCALE_6G    6.0 * ACC_S_RATIO * ACC_G
-#define ACC_SCALE_8G    8.0 * ACC_S_RATIO * ACC_G
-#define ACC_SCALE_16G   24.0 * ACC_S_RATIO * ACC_G  //It seems like it is a bug
+#define ACC_SCALE_2G    ACC_SCALE_TO_FLOAT_2G * ACC_G
+#define ACC_SCALE_4G    ACC_SCALE_TO_FLOAT_4G * ACC_G
+#define ACC_SCALE_6G    ACC_SCALE_TO_FLOAT_6G * ACC_G
+#define ACC_SCALE_8G    ACC_SCALE_TO_FLOAT_8G * ACC_G
+#define ACC_SCALE_16G   ACC_SCALE_TO_FLOAT_16G * ACC_G
 
-/* Default offsets based on scale */
-#define ACC_OFFSET_2G   1
-#define ACC_OFFSET_4G   2
-#define ACC_OFFSET_6G   3
-#define ACC_OFFSET_8G   4
-#define ACC_OFFSET_16G  16
-
-/* LISD3SH accelerometer data structure to maintain all data in one place*/
-typedef struct{
-    char CTRL_REG4;          /* |bit|def | name | info
-                              * -----------------------------------------------
-                              * |7:4|0000| ODR  | Operating data and power rate
-                              * | 3 | 0  | BDU  | Block data update.
-                              * | 2 | 1  | ZEN  | Z axis enable.
-                              * | 1 | 1  | YEN  | Y axis enable.
-                              * | 0 | 1  | XEN  | X axis enable.    */
-    
-    char CTRL_REG3;          /* |bit|def|   name    | info
-                              * -------------------------------------------------
-                              * | 7 | 0 |   DR_EN   | DRDY signal enable to INT1.
-                              * | 6 | 0 |   IEA     | Interrupt signal polarity.
-                              * | 5 | 0 |   IEL     | Interrupt signal latching
-                              * | 4 | 0 |   INT2_EN | Interrupt 2 enable/disable
-                              * | 3 | 0 |   INT1_EN | Interrupt 1 enable/disable.
-                              * | 2 | 0 |   VLIFT   | Vector filter enable/disable
-                              * | 0 | - |   STRT    | Soft reset bit    */
-    
-    char CTRL_REG5;          /* |bit|def|   name    | info
-                              * --------------------------------------
-                              * |7:6| 00|   BW2:BW1 | Anti-aliasing filter bandwidth.
-                              * |5:3|000|  FSCALE2:0| Full-scale selection.
-                              * |2:1| 00|   ST2:1   | Self-test enable.
-                              * | 0 | 0 |   SIM     | SPI serial interface mode selection.*/
-    
-    char CTRL_REG6;          /* |bit|def|   name    | info
-                              * --------------------------------------
-                              * | 7 | - |   BOOT    | Force reboot, cleared when finish.
-                              * | 6 | 0 |   FIFO_EN | FIFO enable.
-                              * | 5 | 0 |   WTM_EN  | Enable FIFO Watermark level use.
-                              * | 4 | - |   ADD_INC | Automatically incremented 
-                              *                       during a multiple byte access 
-                              *                       with a serial interface (I2C or SPI). 
-                              * | 3 | 0 |   P1_EMPTY| Enable FIFO Empty indication on int1.
-                              * | 2 | 0 |   P1_WTM  | FIFO Watermark interrupt on int1. 
-                              * | 1 | 0 | P1_OVERRUN| FIFO overrun interrupt on int1.
-                              * | 0 | 0 |   BOOT_2  | BOOT interrupt on int2. */
-    
-        
-    char FIFO_CTRL;          /* |bit|def | name | info
-                              * -----------------------------------------
-                              * |7:5|--- |FMODE | FIFO Mode Selection.
-                              * |4:0|----| WTMP | FIFO Watermark pointer. 
-                              * -----------------------------------------
-                              * FIFO Modes:
-                              * 000: Bypass Mode. FIFO turned off
-                              * 001: FIFO Mode. Stop collecting data when FIFO is full.
-                              * 010: Stream Mode. If the FIFO is full the new sample 
-                              *      overwrites the older one   
-                              * 011: Stream mode until trigger is de-asserted, 
-                              *      then FIFO mode   
-                              * 100: Bypass mode until trigger is de-asserted, 
-                              *      then Stream mode   
-                              * 111: Bypass mode until trigger is de-asserted, 
-                              *      then FIFO mode    */
-    
-    float scale;             /* Full scale multiplier */
-    char offset;             /* Offset multiplier */
-    
-} ACC_TypeDef;
+#ifndef ACC_PRINT_INIT_CONFIG
+#define ACC_PRINT_INIT_CONFIG   " "
+#endif
 
 /* Accelerometer function prototypes */
+/**
+ * Initializes the accelerometer which initializes the SPI first and then
+ * sends all the initial configuration to the accelerometer via SPI
+ * @return 1 if initialization succeeded or 0 otherwise
+ */
 int iAccInit();
-float fAccGetX();       /* Get the acceleration along X-axis. [m/s^2] */
-float fAccGetY();       /* Get the acceleration along Y-axis. [m/s^2] */
-float fAccGetZ();       /* Get the acceleration along Z-axis. [m/s^2] */
-void vAccGetXYZ(float xyz[], int samples); /* Get the averaged values */
+
+/**
+ * Get the acceleration on X axis in m/s^2
+ * @return acceleration [m/s^2] on X 
+ */
+float fAccGetX();
+
+/**
+ * Get the acceleration on Y axis in m/s^2
+ * @return acceleration [m/s^2] on Y 
+ */
+float fAccGetY();
+
+/**
+ * Get the acceleration on Z axis in m/s^2
+ * @return acceleration [m/s^2] on Z 
+ */
+float fAccGetZ();
+
+/**
+ * Get the acceleration [m/s^2] on all three axis averaged over
+ * a number of samples
+ * @param xyz the array where to store the result <i>Note</i>: should have 
+ * a size >= 3
+ * @param samples the number of samples for averaging
+ */
+void vAccGetXYZ(float xyz[], int samples);
+
+/**
+ * Execute a soft reset of the accelerometer
+ */
 void vAccSoftReset();
+
+/**
+ * Reboot the accelerometer <br>
+ * <i>Note</i>: the accelerometer will be configured with the initial
+ * configuration with which it was started
+ */
 void vAccReboot();
-void vAccSetScale(const char scale);
-void vAccSetRate(const char rate);
+
+/**
+ * Set the operating scale in G
+ * @param scale - the full scale bit mask according to data sheet <br>
+ * For a simpler use, consider storing the masks in a header file
+ */
+void vAccSetScale(const char scale);  // (E.g. see acc_lis3dsh.h for masks)
+
+/**
+ * Set the operating data rate (ODR)
+ * @param rate - the ODR bit mask according to data sheet <br>
+ * For a simpler use, consider storing the masks in a header file
+ */
+void vAccSetRate(const char rate); // (E.g. see acc_lis3dsh.h for masks)
+
+/**
+ * Enable the specified axis
+ * @param Axis - the bit mask to select the axis
+ * @param enable - 1: enable, 0: disable
+ */
 void vAccEnableAxis(const char Axis, int enable);
+
+/**
+ * Check if data was overrun on all three axis
+ * @return 0 if data was not overrun, 1 otherwise
+ */
 int iAccIsDataOverrun();
+
+/**
+ * Check if data was overrun on specific axis
+ * @param Axis - the axis bit mask
+ * @return 1 if data was overrun, 0 otherwise
+ */
 int iAccIsDataOverrun(const char Axis);
+
+/**
+ * Check if a new set of data is ready on every axis
+ * @return 1 if a new set of data is ready, 0 otherwise
+ */
 int iAccIsDataReady();
+
+/**
+ * Check if a new set of data is ready on the specified axis
+ * @param Axis - the axis bit mask
+ * @return 1 if new data is available, 0 otherwise
+ */
 int iAccIsDataReady(const char Axis);
 
+/**
+ * Set the offset over X axis. See data sheet how the offset is calculated
+ * @param offset - the amount of offset for X axis
+ */
 void vAccSetOffsetX(char offset);
+
+/**
+ * Set the offset over Y axis. See data sheet how the offset is calculated
+ * @param offset - the amount of offset for Y axis
+ */
 void vAccSetOffsetY(char offset);
+
+/**
+ * Set the offset over Z axis. See data sheet how the offset is calculated
+ * @param offset - the amount of offset for Z axis
+ */
 void vAccSetOffsetZ(char offset);
 
+/**
+ * Read a value from the specified register address
+ * @param infoReg - the address of the register to read from
+ * @return the value read from the register
+ */
 char cAccGetINFO(char infoReg);
 
+/**
+ * Stop the accelerometer along with the SPI it uses
+ */
 void vAccStop();
 
 #endif	/* ACC_CONTROLS_H */

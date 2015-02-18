@@ -19,7 +19,7 @@ typedef Gpio<GPIOD_BASE, 13> ledYellow;
 pthread_t alertThread;
 
 /* Needed to change execution function */
-int running;
+int leds_running;
 
 /* Used to keep the thread running */
 int alive;
@@ -31,12 +31,15 @@ void (*lightUp)();
 void (*nextLights)();
 
 void vAlertInit(){
-    running = 0;
-    alive = 0;
+    leds_running = 0;
     ledRed::mode(Mode::OUTPUT);
     ledBlue::mode(Mode::OUTPUT);
     ledGreen::mode(Mode::OUTPUT);
     ledYellow::mode(Mode::OUTPUT);
+    if(!alive){
+        alive = 1;
+        pthread_create(&alertThread, NULL, threadRun, NULL);
+    }
 }
 
 void vSetLeds(int yellow, int red, int blue, int green) {
@@ -56,14 +59,14 @@ void vToggleLeds() {
 void vAlertStop() {
     if (alive) {
         alive = 0;
-        running = 0;
+        leds_running = 0;
         pthread_join(alertThread, NULL);
     }
     vSetLeds(0, 0, 0, 0);
 }
 
 void AlertLoading() {
-    while (running) {
+    while (leds_running) {
         if(cannotContinue(ALERT_DELAY_LOADING/2)) break;
         ledYellow::high();
         if(cannotContinue(ALERT_DELAY_LOADING)) break;
@@ -108,15 +111,12 @@ void AlertError() {
 
 void nothing(){
     vSetLeds(0,0,0,1);
-    while(running){
+    while(leds_running){
         delayMs(10);
     }
 }
 
 void vAlertShow(Alert::Alert_ alert) {
-    if(!alive){
-        pthread_create(&alertThread, NULL, threadRun, NULL);
-    }
     switch (alert) {
         case Alert::Crash:
             switchAlert(AlertCrash);
@@ -138,16 +138,15 @@ void vAlertShow(Alert::Alert_ alert) {
 
 void switchAlert(void (*nextAlert)()){
     nextLights = nextAlert;
-    running = 0;
+    leds_running = 0;
 }
 
 void *threadRun(void *args){
     lightUp = nothing;
-    running = 1;
-    alive = 1;
+    leds_running = 1;
     while(alive){
         lightUp = nextLights;
-        running = 1;
+        leds_running = 1;
         lightUp();
     }
     return NULL;
@@ -156,7 +155,7 @@ void *threadRun(void *args){
 #ifdef ALERT_DELAY_GRANULARITY
 int cannotContinue(int checkPeriod){
     while(checkPeriod > 0){
-        if(!running) {
+        if(!leds_running) {
             return 1;
         }
         delayMs(ALERT_DELAY_GRANULARITY);
@@ -167,6 +166,6 @@ int cannotContinue(int checkPeriod){
 #else
 int cannotContinue(int checkPeriod){
     delayMs(checkPeriod);
-    return !running;
+    return !leds_running;
 }
 #endif
