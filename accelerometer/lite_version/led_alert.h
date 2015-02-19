@@ -31,9 +31,6 @@ void vAlertInit();
 /* Turn off or on all the LEDs in one shot */
 void vSetLeds(int yellow, int red, int blue, int green);
 
-/* Toggle all LEDs */
-void vToggleLeds();
-
 /* General Function to show alerts */
 void vAlertShow(Alert::Alert_ alert);
 

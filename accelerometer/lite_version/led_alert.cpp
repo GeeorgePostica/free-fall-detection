@@ -22,53 +22,26 @@ void vSetLeds(int yellow, int red, int blue, int green) {
     yellow ? ledYellow::high() : ledYellow::low();
 }
 
-void vToggleLeds() {
-    !ledRed::value() ? ledRed::high() : ledRed::low();
-    !ledBlue::value() ? ledBlue::high() : ledBlue::low();
-    !ledGreen::value() ? ledGreen::high() : ledGreen::low();
-    !ledYellow::value() ? ledYellow::high() : ledYellow::low();
-}
-
 void vAlertStop() {
     vSetLeds(0, 0, 0, 0);
-}
-
-void AlertLoading() {
-    vSetLeds(1, 0, 0, 0);
-}
-
-void AlertFalling() {
-    vSetLeds(1, 0, 1, 0);
-}
-
-void AlertCrash() {
-    vSetLeds(1, 1, 1, 1);
-}
-
-void AlertError() {
-    vSetLeds(0, 1, 0, 0);
-}
-
-void nothing(){
-    vSetLeds(0, 0, 0, 1);
 }
 
 void vAlertShow(Alert::Alert_ alert) {
     switch (alert) {
         case Alert::Crash:
-            AlertCrash();
+            vSetLeds(1, 1, 1, 1);
             break;
         case Alert::Error:
-            AlertError;
+            vSetLeds(0, 1, 0, 0);
             break;
         case Alert::Loading:
-            AlertLoading;
+            vSetLeds(1, 0, 0, 0);
             break;
         case Alert::Falling:
-            AlertFalling;
+            vSetLeds(1, 0, 1, 0);
             break;
         default:
-            nothing;
+            vSetLeds(0, 0, 0, 1);
             break;
     }
 }

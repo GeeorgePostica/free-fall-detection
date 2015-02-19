@@ -36,25 +36,6 @@ int iAccInit();
 void vAccGetXYZ(float xyz[], int samples);
 
 /**
- * Execute a soft reset of the accelerometer
- */
-void vAccSoftReset();
-
-/**
- * Set the operating scale in G
- * @param scale - the full scale bit mask according to data sheet <br>
- * For a simpler use, consider storing the masks in a header file
- */
-void vAccSetScale(const char scale);  // (E.g. see acc_lis3dsh.h for masks)
-
-/**
- * Set the operating data rate (ODR)
- * @param rate - the ODR bit mask according to data sheet <br>
- * For a simpler use, consider storing the masks in a header file
- */
-void vAccSetRate(const char rate); // (E.g. see acc_lis3dsh.h for masks)
-
-/**
  * Check if a new set of data is ready on every axis
  * @return 1 if a new set of data is ready, 0 otherwise
  */

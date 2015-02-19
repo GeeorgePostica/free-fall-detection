@@ -19,8 +19,6 @@ char cSpiSendReceiveData(char data);
 /**********************************************/
 
 void vSpiInit() {
-    DEBUG_LOG("SPI initializing... ");
-
     /* Enable clock for SPI */
     RCC->APB2ENR |= RCC_APB2ENR_SPI1EN;
 
@@ -43,8 +41,6 @@ void vSpiInit() {
     SPI->CR1 |= SPI_CONFIG_REG;
 
     SPI->CR1 |= SPI_CR1_SPE; /* Enable the SPI */
-
-    DEBUG_LOG("done!\n\n");
 }
 
 void vSpiWriteByte(char addr, char data) {

@@ -29,8 +29,6 @@ void *vFallChecking(void *args);
 void vInitFallDetection(void (*callbackFunction)(), void (*crashCallBackFunc)()) {
     // Check if the algorithm is already running or no callbackFunction was set
     if (callbackFunction == NULL || fd_running) {
-        DEBUG_LOG("Fall detection: FAILED: ");
-        fd_running ? DEBUG_LOG("Already running\n") : DEBUG_LOG("No callback\n");
         return;
     }
     // Set the running flag
@@ -91,7 +89,6 @@ void *vFallChecking(void *args) {
         if (crashCallback != NULL) {    //If crash test was enabled, launch it
             impact.fallDurationMs = timer->interval();
             impact.velocity = ACC_G * timer->interval();
-            DEBUG_LOG("Launching CRASH TEST...\n");
             crashCheckRun = 1;
         }
         
