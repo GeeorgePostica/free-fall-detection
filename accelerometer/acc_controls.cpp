@@ -3,6 +3,7 @@
 #include "protocols/spi_acc.h"
 
 ACC_TypeDef ACC;     /* The data structure which represents the accelerometer */
+int initiated = 0;      /* See if the accelerometer was already initiated */
 
 /************ FUNCTION PROTOTYPES ***********/
 short sAccGetAxis(char axisRegAddress);
@@ -15,6 +16,11 @@ void vAccSetSPIMode(const char SPIMode);
 
 
 int iAccInit() {
+    //If it was already started then return positive outcome
+    if(initiated){
+        return 1;
+    }
+    
     vSpiInit();
     char who = cSpiReadByte(ACC_ADDR_WHO_AM_I);
     if (who == ACC_WHO_AM_I) {
@@ -50,6 +56,9 @@ int iAccInit() {
         
         DEBUG_LOG(" ... initialization done\n\n");
         
+        /* Everything is fine so set the initiated flag */
+        initiated = 1;
+        
         /* Return positive outcome */
         return 1;
     }
@@ -59,12 +68,16 @@ int iAccInit() {
     else{
         DEBUG_LOG("Could not connect to %s !!\n", ACC_ID);
     }
+    /* Something went wrong, reset the initiated flag */
+    initiated = 0;
     return 0;
 }
 
 void vAccReboot() {
     DEBUG_LOG("Rebooting accelerometer...\n");
     vSpiWriteByte(ACC_ADDR_CTRL_REG6, ACC.CTRL_REG6 | ACC_CTRL_REG6_REBOOT);
+    //In any case reset the initiated flag
+    initiated = 0;
     iAccInit();
 }
 
@@ -213,6 +226,9 @@ void vAccStop(){
     // Power down the accelerometer
     ACC.CTRL_REG4 |= ACC_CTRL_REG4_ODR_POWER_DOWN;
     vSpiWriteByte(ACC_ADDR_CTRL_REG4, ACC.CTRL_REG4);
+    
+    // Reset the initiated flag
+    initiated = 0;
     
     // Stop the SPI
     vSpiShutdown();

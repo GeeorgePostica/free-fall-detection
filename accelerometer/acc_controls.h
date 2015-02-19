@@ -25,7 +25,10 @@
 /* Accelerometer function prototypes */
 /**
  * Initializes the accelerometer which initializes the SPI first and then
- * sends all the initial configuration to the accelerometer via SPI
+ * sends all the initial configuration to the accelerometer via SPI <br>
+ * <i>Note</i>: if the accelerometer was previously initiated, than this 
+ * function will return 1 (positive outcome) without reinitializing the 
+ * accelerometer
  * @return 1 if initialization succeeded or 0 otherwise
  */
 int iAccInit();

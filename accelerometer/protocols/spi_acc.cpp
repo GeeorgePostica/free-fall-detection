@@ -181,9 +181,6 @@ void vSpiEndTransmission() {
     /* Wait until SPI is not busy */
     while (SPI->SR & SPI_SR_BSY);
 
-    /* Let the MEMS catch the SCK stable high value */
-    delayUs(SPI_ACC_CS_DELAY);
-
     /* Pull up slave select, which disables the accelerometer SPI */
     cs::high();
 

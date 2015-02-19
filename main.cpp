@@ -15,7 +15,7 @@ void falling() {
 }
 
 void crashing() {
-    if (xGetImpactData().velocity > 1) {
+    if (xGetImpactData().velocity > 1.5) {
         vAlertShow(Alert::Crash);
         DEBUG_LOG("CRASH impact velocity: %f m/s\n", xGetImpactData().velocity);
         DEBUG_LOG("CRASH impact impulse: %f N*s\n", xGetImpactData().impulse);
@@ -29,7 +29,8 @@ int main() {
     vInitFallDetection(falling, crashing);
     vAlertShow(Alert::Running);
     for (;;) {
-        // Just let it run...
+        
         // Any code can be put here, the fall detection is running in parallel
+        
     }
 }

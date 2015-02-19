@@ -10,6 +10,8 @@
 
 #include <stdio.h>
 
+#include "acc_controls.h"
+
 /*************** General configuration parameters *****************************/
 
 /*----------------------------------------------------------------------------*/
@@ -39,6 +41,10 @@
 
 /** Board weight [kg]*/
 #define FD_CRASH_BOARD_MASS       0.06
+
+/** Stops the accelerometer on fall detection or crash detection, comment it
+ * if you don't need to stop the accelerometer upon those events */
+#define FD_STOP_ACC_ON_FALL       vAccStop()
 
 /*----------------------------------------------------------------------------*/
 /**** ACCELEROMETER SETTINGS -------------------------------------------------*/
