@@ -18,8 +18,10 @@
  * free fall is detected, <i>Note</i>: if it is NULL the algorithm won't start
  * @param crashCallBackFunc the function of type void() to be called when 
  * a crash from free fall is detected, 
- * <i>Note</i>: if set NULL then the crash check algorithm won't be started */
-void vInitFallDetection(void (*callbackFunction)(), void (*crashCallBackFunc)());
+ * <i>Note</i>: if set NULL then the crash check algorithm won't be started
+ * @param repeated set to 1 if the fall-detection should continue working until
+ * a Stop is requested, 0 if only one shot fall detection */
+void vInitFallDetection(void (*callbackFunction)(), void (*crashCallBackFunc)(), int repeated);
 
 /** Stops the fall detection algorithm along with every other communication
  * with the accelerometer. <b> It is mandatory to call this function before

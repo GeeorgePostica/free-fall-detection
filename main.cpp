@@ -21,16 +21,19 @@ void crashing() {
         DEBUG_LOG("CRASH impact impulse: %f N*s\n", xGetImpactData().impulse);
         DEBUG_LOG("CRASH fall duration: %d ms\n", xGetImpactData().fallDurationMs);
     }
+    // Just to reset the LEDs
+    Thread::sleep(4000);
+    vAlertShow(Alert::Running);
 }
 
 int main() {
     vAlertInit();
     vAlertShow(Alert::Loading);
-    vInitFallDetection(falling, crashing);
+    vInitFallDetection(falling, crashing, 1);       //Repeated
     vAlertShow(Alert::Running);
     for (;;) {
-        
+
         // Any code can be put here, the fall detection is running in parallel
-        
+
     }
 }

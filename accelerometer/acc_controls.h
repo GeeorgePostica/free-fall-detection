@@ -18,10 +18,6 @@
 #define ACC_SCALE_8G    ACC_SCALE_TO_FLOAT_8G * ACC_G
 #define ACC_SCALE_16G   ACC_SCALE_TO_FLOAT_16G * ACC_G
 
-#ifndef ACC_PRINT_INIT_CONFIG
-#define ACC_PRINT_INIT_CONFIG   " "
-#endif
-
 /* Accelerometer function prototypes */
 /**
  * Initializes the accelerometer which initializes the SPI first and then

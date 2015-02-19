@@ -149,6 +149,10 @@
 #define DEBUG_FD(...)
 #endif
 
+#ifndef ACC_PRINT_INIT_CONFIG
+#define ACC_PRINT_INIT_CONFIG   " "
+#endif
+
 /******************************************************************************/
 
 #endif	/* FLAGS_H */
