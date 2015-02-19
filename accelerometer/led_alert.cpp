@@ -109,7 +109,7 @@ void AlertError() {
     }
 }
 
-void nothing(){
+void AlertRunning(){
     vSetLeds(0,0,0,1);
     while(leds_running){
         delayMs(10);
@@ -131,7 +131,7 @@ void vAlertShow(Alert::Alert_ alert) {
             switchAlert(AlertFalling);
             break;
         default:
-            switchAlert(nothing);
+            switchAlert(AlertRunning);
             break;
     }
 }
@@ -142,7 +142,7 @@ void switchAlert(void (*nextAlert)()){
 }
 
 void *threadRun(void *args){
-    lightUp = nothing;
+    lightUp = AlertRunning;
     leds_running = 1;
     while(alive){
         lightUp = nextLights;

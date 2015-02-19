@@ -9,18 +9,17 @@
 
 using namespace miosix;
 
-void falling(){
+void falling() {
     vAlertShow(Alert::Falling);
     DEBUG_LOG("\n**** ALERT! FREE FALL DETECTED ****\n");
 }
 
-void crashing(){
-    DEBUG_LOG("CRASH impact velocity: %f m/s\n", xGetImpactData().velocity);
-    DEBUG_LOG("CRASH impact impulse: %f N*s\n", xGetImpactData().impulse);
-    DEBUG_LOG("CRASH fall duration: %d ms\n", xGetImpactData().fallDurationMs);
-    
-    if(xGetImpactData().velocity > 0.01){
+void crashing() {
+    if (xGetImpactData().velocity > 1) {
         vAlertShow(Alert::Crash);
+        DEBUG_LOG("CRASH impact velocity: %f m/s\n", xGetImpactData().velocity);
+        DEBUG_LOG("CRASH impact impulse: %f N*s\n", xGetImpactData().impulse);
+        DEBUG_LOG("CRASH fall duration: %d ms\n", xGetImpactData().fallDurationMs);
     }
 }
 
@@ -30,7 +29,7 @@ int main() {
     vInitFallDetection(falling, crashing);
     vAlertShow(Alert::Running);
     for (;;) {
-        Thread::sleep(2000);
-        DEBUG_LOG("Tick\n");
+        // Just let it run...
+        // Any code can be put here, the fall detection is running in parallel
     }
 }

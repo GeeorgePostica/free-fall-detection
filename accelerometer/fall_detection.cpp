@@ -93,7 +93,7 @@ void *vFallChecking(void *args) {
         if (crashCallback != NULL) {    //If crash test was enabled, launch it
             impact.fallDurationMs = timer->interval();
             impact.velocity = ACC_G * timer->interval();
-            DEBUG_LOG("Launching CRASH TEST...\n");
+            //Launching CRASH TEST...
             crashCheckRun = 1;
         }
         //DEBUG_LOG("timer->interval: %d\n", timer->interval());
@@ -155,6 +155,8 @@ void *vCrashCheck(void *args) {
     impact.impulse = magnitude*(timer->interval() - interval) - impact.velocity;
     impact.velocity *= 0.001;
     impact.impulse *= 0.001 * FD_CRASH_BOARD_MASS;
+    // Make the impulse positive...
+    impact.impulse = impact.impulse < 0 ? -impact.impulse : impact.impulse;
     crashCallback();
 
     vAccStop();

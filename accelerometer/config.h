@@ -1,7 +1,7 @@
 /* 
- * File:   flags.h
+ * File:   config.h
  * Author: george
- *
+ * Contains all the necessary parameters to run the free fall detection program
  * Created on February 8, 2015, 4:59 PM
  */
 
