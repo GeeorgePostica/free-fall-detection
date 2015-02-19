@@ -102,6 +102,4 @@ void vAccStop(){
     
     // Stop the SPI
     vSpiShutdown();
-    
-    DEBUG_LOG("Accelerometer disconnected\n");
 }
